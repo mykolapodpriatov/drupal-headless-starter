@@ -1,0 +1,22 @@
+name: drupal-headless-starter
+type: drupal11
+docroot: drupal/web
+php_version: "8.3"
+webserver_type: nginx-fpm
+xdebug_enabled: false
+additional_hostnames:
+  - api.drupal-headless-starter
+additional_fqdns: []
+database:
+  type: mariadb
+  version: "10.11"
+nfs_mount_enabled: false
+mutagen_enabled: true
+use_dns_when_possible: true
+composer_root: drupal
+composer_version: "2"
+nodejs_version: "20"
+web_environment:
+  - NEXT_PUBLIC_FRONTEND_URL=http://localhost:3000
+  - DRUPAL_PREVIEW_SECRET=dev-preview-secret-change-me
+disable_settings_management: false

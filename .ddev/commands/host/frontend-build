@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+## Description: Build the Next.js frontend for production
+## Usage: frontend-build
+## Example: "ddev frontend-build"
+
+set -euo pipefail
+
+cd "$(dirname "$0")/../../.."/frontend
+
+if command -v pnpm >/dev/null 2>&1; then
+  pnpm install --frozen-lockfile
+  exec pnpm build
+else
+  npm ci
+  exec npm run build
+fi

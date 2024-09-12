@@ -1,0 +1,51 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Node
+node_modules/
+.next/
+out/
+.pnpm-store/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Drupal — scaffolded files and runtime artefacts
+drupal/web/core/
+drupal/web/libraries/
+drupal/web/modules/contrib/
+drupal/web/profiles/contrib/
+drupal/web/themes/contrib/
+drupal/vendor/
+drupal/web/sites/*/files/
+drupal/web/sites/*/private/
+drupal/web/sites/*/settings.local.php
+drupal/web/sites/*/services.local.yml
+
+# OAuth keys — never commit
+drupal/keys/*.key
+drupal/keys/*.pem
+!drupal/keys/.gitkeep
+
+# DDEV
+.ddev/.global_commands/
+.ddev/db_snapshots/
+.ddev/import-db/
+.ddev/import.yaml
+.ddev/providers/
+
+# Build artefacts
+coverage/
+*.log

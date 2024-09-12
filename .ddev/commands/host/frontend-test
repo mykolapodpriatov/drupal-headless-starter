@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+## Description: Run frontend checks (typecheck + lint)
+## Usage: frontend-test
+## Example: "ddev frontend-test"
+
+set -euo pipefail
+
+cd "$(dirname "$0")/../../.."/frontend
+
+if command -v pnpm >/dev/null 2>&1; then
+  pnpm install --frozen-lockfile
+  pnpm typecheck
+  pnpm lint
+else
+  npm ci
+  npm run typecheck
+  npm run lint
+fi

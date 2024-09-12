@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+## Description: Run the Next.js dev server (frontend/) on host
+## Usage: frontend-dev
+## Example: "ddev frontend-dev"
+
+set -euo pipefail
+
+cd "$(dirname "$0")/../../.."/frontend
+
+if [ ! -d node_modules ]; then
+  echo "Installing dependencies (first run)..."
+  if command -v pnpm >/dev/null 2>&1; then
+    pnpm install
+  else
+    npm install
+  fi
+fi
+
+if command -v pnpm >/dev/null 2>&1; then
+  exec pnpm dev
+else
+  exec npm run dev
+fi
