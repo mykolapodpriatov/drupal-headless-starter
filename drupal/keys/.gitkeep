@@ -1,0 +1,10 @@
+# OAuth2 keypair lives here.
+#
+# Generate locally — these files are gitignored:
+#
+#   openssl genrsa -out private.key 2048
+#   openssl rsa -in private.key -pubout -out public.key
+#   chmod 600 private.key
+#
+# In production, mount the pair as a read-only secret and point
+# DRUPAL_OAUTH_PRIVATE_KEY_PATH / DRUPAL_OAUTH_PUBLIC_KEY_PATH at it.

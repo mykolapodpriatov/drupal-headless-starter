@@ -1,0 +1,14 @@
+{
+    "name": "korgalom/headless-starter-recipe",
+    "type": "drupal-recipe",
+    "description": "Headless Starter recipe — JSON:API + simple_oauth + graphql_compose + Article content type.",
+    "license": "GPL-2.0-or-later",
+    "require": {
+        "drupal/core": "^11",
+        "drupal/jsonapi_extras": "^3.27",
+        "drupal/simple_oauth": "^6.0",
+        "drupal/graphql_compose": "^2.1",
+        "drupal/decoupled_router": "^2.0",
+        "drupal/subrequests": "^3.0"
+    }
+}

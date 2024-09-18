@@ -1,0 +1,63 @@
+# Per-site service overrides. Production-safe defaults; tighten in
+# settings.local.php for local development if needed.
+parameters:
+
+  # ----------------------------------------------------------------------
+  # CORS — locked to the Next.js origin. Set NEXT_PUBLIC_FRONTEND_URL in
+  # the environment and re-render this file via a deploy step, OR override
+  # with a parameter_bag service if you need multiple origins.
+  # ----------------------------------------------------------------------
+  cors.config:
+    enabled: true
+    allowedHeaders:
+      - 'x-csrf-token'
+      - 'authorization'
+      - 'content-type'
+      - 'accept'
+      - 'origin'
+      - 'x-requested-with'
+      - 'access-control-allow-origin'
+    allowedMethods:
+      - 'GET'
+      - 'POST'
+      - 'PATCH'
+      - 'DELETE'
+      - 'OPTIONS'
+    allowedOrigins:
+      - 'http://localhost:3000'
+      - 'http://localhost:3001'
+    exposedHeaders: false
+    maxAge: 1000
+    supportsCredentials: false
+
+  # ----------------------------------------------------------------------
+  # Session — defaults are fine; we don't want the JSON:API surface to mint
+  # PHP sessions for anonymous API callers, but we still need cookies for
+  # the OAuth authorize endpoint to work.
+  # ----------------------------------------------------------------------
+  session.storage.options:
+    gc_probability: 1
+    gc_divisor: 100
+    gc_maxlifetime: 200000
+    cookie_lifetime: 2000000
+    cookie_secure: 'auto'
+
+  # ----------------------------------------------------------------------
+  # Twig — leave defaults except for explicit cache control in production.
+  # ----------------------------------------------------------------------
+  twig.config:
+    debug: false
+    auto_reload: null
+    cache: true
+
+  # ----------------------------------------------------------------------
+  # http.response.debug_cacheability_headers helps debug ISR caching in
+  # dev — leave off in prod.
+  # ----------------------------------------------------------------------
+  http.response.debug_cacheability_headers: false
+
+  # ----------------------------------------------------------------------
+  # File system — match settings.php.
+  # ----------------------------------------------------------------------
+  filesystem:
+    schemes: ['public', 'private']

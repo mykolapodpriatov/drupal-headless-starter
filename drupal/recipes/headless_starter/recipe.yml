@@ -1,0 +1,50 @@
+name: 'Headless Starter'
+description: 'Configures a Drupal 11 site as a decoupled backend for Next.js: JSON:API + jsonapi_extras, simple_oauth, graphql_compose, decoupled_router, an Article content type, and an editor role wired to draft + preview.'
+type: 'Site'
+
+install:
+  # Core
+  - node
+  - path
+  - text
+  - image
+  - media
+  - media_library
+  - field_ui
+  - views_ui
+  # Decoupled stack
+  - jsonapi
+  - jsonapi_extras
+  - graphql
+  - graphql_compose
+  - graphql_compose_blocks
+  - graphql_compose_routes
+  - decoupled_router
+  - subrequests
+  - rest
+  - restui
+  - serialization
+  # OAuth2 server
+  - simple_oauth
+  - consumers
+
+config:
+  import:
+    headless_starter:
+      - core.extension
+      - system.site
+      - node.type.article
+      - field.storage.node.body
+      - field.storage.node.field_image
+      - field.field.node.article.body
+      - field.field.node.article.field_image
+      - user.role.editor
+      - user.role.frontend_consumer
+      - simple_oauth.settings
+      - jsonapi_extras.settings
+      - jsonapi_extras.jsonapi_resource_config.node--article
+
+# Recipes that this recipe builds on. Drupal's own "core/recipes/article_content_type"
+# would normally do the heavy lifting, but we want full control over the field
+# storage + JSON:API resource shape, so we ship our own copies under config/.
+recipes: []

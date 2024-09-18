@@ -1,0 +1,14 @@
+parameters:
+    level: 6
+    paths:
+        - web/modules/custom
+    excludePaths:
+        - web/modules/custom/*/tests/fixtures/*
+    drupal:
+        drupal_root: web
+    ignoreErrors:
+        - '#Drupal calls should be avoided in classes#'
+
+includes:
+    - vendor/mglaman/phpstan-drupal/extension.neon
+    - vendor/mglaman/phpstan-drupal/rules.neon
