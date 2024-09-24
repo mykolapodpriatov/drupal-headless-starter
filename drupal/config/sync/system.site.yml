@@ -1,0 +1,15 @@
+_core:
+  default_config_hash: __PLACEHOLDER__
+uuid: __PLACEHOLDER__
+langcode: en
+name: 'Drupal Headless Starter'
+mail: admin@example.com
+slogan: 'Drupal 11 + Next.js 15 starter'
+page:
+  403: ''
+  404: ''
+  front: /node
+admin_compact_mode: false
+weight_select_max: 100
+default_langcode: en
+mail_notification: null

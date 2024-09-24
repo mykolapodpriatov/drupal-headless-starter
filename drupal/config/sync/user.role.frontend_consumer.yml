@@ -1,0 +1,19 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - simple_oauth
+id: frontend_consumer
+label: 'Frontend consumer'
+weight: 4
+is_admin: false
+# Role used by the Next.js OAuth consumer. Read-only access to published
+# content plus, when granted via PKCE token, draft + revision access.
+permissions:
+  - 'access content'
+  - 'access user profiles'
+  - 'view own unpublished content'
+  - 'view all revisions'
+  - 'view article revisions'
+  - 'restful get jsonapi'
