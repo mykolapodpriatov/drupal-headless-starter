@@ -1,19 +1,22 @@
-// Home page. Renders as a static page at build time; recent-articles strip
-// gets wired to the Drupal client in the next commit.
+// Home page. Renders as a static page at build time with ISR — recent
+// articles strip refreshes every 5 minutes in production.
 
 import type { Metadata } from 'next';
+
+import { ArticleCard } from '@/components/ArticleCard';
+import { getArticles } from '@/lib/drupal/queries';
 
 export const metadata: Metadata = {
   title: 'Home',
 };
 
-// ISR — rebuilt at most every 5 minutes in production. Overridden to 0 in
-// preview mode via the article route handlers.
 export const revalidate = 300;
 
-export default function HomePage(): JSX.Element {
+export default async function HomePage(): Promise<JSX.Element> {
+  const articles = await getArticles({ limit: 6 });
+
   return (
-    <div className="space-y-12">
+    <div className="space-y-16">
       <section>
         <h1 className="text-4xl font-bold tracking-tight">
           Drupal 11 + Next.js 15
@@ -40,11 +43,21 @@ export default function HomePage(): JSX.Element {
         </div>
       </section>
 
-      <section>
+      <section className="space-y-6">
         <h2 className="text-xl font-semibold">Recent articles</h2>
-        <p className="mt-2 text-sm text-[color:var(--color-muted)]">
-          Wired up to <code>getArticles()</code> in the next commit.
-        </p>
+        {articles.length === 0 ? (
+          <p className="text-[color:var(--color-muted)]">
+            No articles yet. Create one in Drupal admin to see it here.
+          </p>
+        ) : (
+          <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {articles.map((article) => (
+              <li key={article.id}>
+                <ArticleCard article={article} />
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
     </div>
   );
