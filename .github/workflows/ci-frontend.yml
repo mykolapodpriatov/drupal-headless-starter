@@ -1,0 +1,70 @@
+name: CI - Frontend (Next.js)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/ci-frontend.yml'
+  pull_request:
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/ci-frontend.yml'
+
+permissions:
+  contents: read
+
+env:
+  # Build-time fallbacks so `next build` does not bail when env is unset.
+  DRUPAL_BASE_URL: http://localhost
+  NEXT_PUBLIC_DRUPAL_BASE_URL: http://localhost
+  NEXT_PUBLIC_FRONTEND_URL: http://localhost:3000
+  DRUPAL_CLIENT_ID: ci
+  DRUPAL_CLIENT_SECRET: ci
+  DRUPAL_PREVIEW_SECRET: ci
+
+jobs:
+  build:
+    name: typecheck + lint + build
+    runs-on: ubuntu-22.04
+
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.12.2
+          run_install: false
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: TypeScript - tsc --noEmit
+        run: pnpm typecheck
+
+      - name: ESLint
+        run: pnpm lint
+
+      - name: Next.js build
+        run: pnpm build
+
+      - name: Upload build artefacts
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: next-build
+          path: frontend/.next
+          retention-days: 3
+          if-no-files-found: ignore

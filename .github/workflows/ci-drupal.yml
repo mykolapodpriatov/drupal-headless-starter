@@ -1,0 +1,82 @@
+name: CI - Drupal backend
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'drupal/**'
+      - '.github/workflows/ci-drupal.yml'
+  pull_request:
+    paths:
+      - 'drupal/**'
+      - '.github/workflows/ci-drupal.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  static-analysis:
+    name: composer + PHPCS + PHPStan
+    runs-on: ubuntu-22.04
+
+    defaults:
+      run:
+        working-directory: drupal
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP 8.3
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+          tools: composer:v2
+          extensions: mbstring, intl, dom, gd, pdo, pdo_mysql, xml, json, opcache
+
+      - name: Validate composer.json
+        run: composer validate --strict --no-check-publish
+
+      - name: Cache composer
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.composer/cache
+            drupal/vendor
+          key: composer-${{ runner.os }}-${{ hashFiles('drupal/composer.json') }}
+          restore-keys: |
+            composer-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: PHPCS - Drupal + DrupalPractice
+        run: |
+          if [ -d web/modules/custom ] && [ -n "$(find web/modules/custom -type f 2>/dev/null)" ]; then
+            vendor/bin/phpcs --standard=phpcs.xml
+          else
+            echo "No custom modules - skipping PHPCS."
+          fi
+
+      - name: PHPStan
+        run: |
+          if [ -d web/modules/custom ] && [ -n "$(find web/modules/custom -type f -name '*.php' 2>/dev/null)" ]; then
+            vendor/bin/phpstan analyse --no-progress --memory-limit=512M
+          else
+            echo "No custom PHP - skipping PHPStan."
+          fi
+
+      - name: Validate config sync (yaml lint)
+        uses: ibiqlik/action-yamllint@v3
+        with:
+          file_or_dir: drupal/config/sync drupal/recipes
+          config_data: |
+            extends: default
+            rules:
+              line-length: disable
+              document-start: disable
+              truthy:
+                check-keys: false
+              indentation:
+                spaces: 2
+                indent-sequences: true
