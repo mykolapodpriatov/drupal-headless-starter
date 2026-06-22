@@ -1,5 +1,8 @@
 # Drupal Headless Starter
 
+[![CI - Drupal backend](https://github.com/mykolapodpriatov/drupal-headless-starter/actions/workflows/ci-drupal.yml/badge.svg)](https://github.com/mykolapodpriatov/drupal-headless-starter/actions/workflows/ci-drupal.yml)
+[![CI - Frontend](https://github.com/mykolapodpriatov/drupal-headless-starter/actions/workflows/ci-frontend.yml/badge.svg)](https://github.com/mykolapodpriatov/drupal-headless-starter/actions/workflows/ci-frontend.yml)
+
 Production-ready starter for a decoupled Drupal 11 + Next.js 15 stack. Drupal is
 the editorial backend exposing both JSON:API and GraphQL; Next.js (App Router)
 is the public front-end, with ISR for content pages and a preview mode wired
