@@ -47,7 +47,7 @@ export async function generateMetadata(
 
 export default async function ArticlePage(
   { params }: ArticlePageProps,
-): Promise<JSX.Element> {
+) {
   const { slug } = await params;
   const { isEnabled: isDraft } = await draftMode();
 

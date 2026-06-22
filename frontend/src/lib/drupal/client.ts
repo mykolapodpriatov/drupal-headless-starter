@@ -11,7 +11,7 @@
 
 import 'server-only';
 
-import { z, type ZodTypeAny } from 'zod';
+import type { z, ZodTypeAny } from 'zod';
 
 import {
   getClientCredentialsToken,

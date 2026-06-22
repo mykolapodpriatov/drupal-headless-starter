@@ -94,41 +94,71 @@ export interface GetArticlesOptions {
   draft?: boolean;
 }
 
+/**
+ * Whether an error means the Drupal backend could not be reached at all.
+ *
+ * `fetch()` throws a `TypeError` ("fetch failed", e.g. ECONNREFUSED) when the
+ * host is unreachable — which is normal when the frontend is built without a
+ * live backend (CI, a standalone `next build`). API and schema errors are
+ * `DrupalApiError` / `DrupalValidationError` and must still surface, so this
+ * only matches transport-level failures.
+ */
+function isBackendUnreachable(error: unknown): boolean {
+  return (
+    error instanceof TypeError ||
+    (error instanceof Error && error.message.includes('fetch failed'))
+  );
+}
+
 export async function getArticles(
   opts: GetArticlesOptions = {},
 ): Promise<Article[]> {
   const limit = opts.limit ?? 12;
   const offset = opts.offset ?? 0;
 
-  const response = await drupalFetch({
-    resource: 'articles',
-    schema: articleCollectionResponse,
-    draft: opts.draft,
-    next: opts.draft
-      ? { revalidate: 0 }
-      : { revalidate: 60, tags: ['articles:list'] },
-    query: {
-      include: ['image'],
-      fields: {
-        'node--article': [...ARTICLE_FIELDS],
-        'file--file': [...FILE_FIELDS],
+  try {
+    const response = await drupalFetch({
+      resource: 'articles',
+      schema: articleCollectionResponse,
+      draft: opts.draft,
+      next: opts.draft
+        ? { revalidate: 0 }
+        : { revalidate: 60, tags: ['articles:list'] },
+      query: {
+        include: ['image'],
+        fields: {
+          'node--article': [...ARTICLE_FIELDS],
+          'file--file': [...FILE_FIELDS],
+        },
+        sort: ['-createdAt'],
+        page: { limit, offset },
+        filter: opts.draft ? {} : { 'published': true },
       },
-      sort: ['-createdAt'],
-      page: { limit, offset },
-      filter: opts.draft ? {} : { 'published': true },
-    },
-  });
+    });
 
-  return response.data.map((r) => flattenArticle(r, response.included));
+    return response.data.map((r) => flattenArticle(r, response.included));
+  } catch (error) {
+    if (isBackendUnreachable(error)) {
+      console.warn(
+        '[drupal] Backend unreachable while listing articles; returning [] (ISR will refill).',
+      );
+      return [];
+    }
+    throw error;
+  }
 }
 
 export async function getArticleBySlug(
   slug: string,
   opts: { draft?: boolean } = {},
 ): Promise<Article | null> {
-  // Drupal returns the path alias with a leading slash; normalise for the
-  // filter.
-  const normalised = slug.startsWith('/') ? slug : `/${slug}`;
+  // `slug` is the bare alias segment from the route (e.g. "my-post"); the
+  // node's stored path alias is "/articles/<slug>". JSON:API can filter on the
+  // computed path alias directly via `path.alias`, which is more reliable than
+  // filtering the renamed `slug` attribute (an alias of `path.alias` produced
+  // by a jsonapi_extras enhancer). Articles need an alias for this lookup to
+  // resolve — e.g. a pathauto pattern of `articles/[node:title]`.
+  const aliasPath = `/articles/${slug.replace(/^\/+/, '')}`;
 
   const response = await drupalFetch({
     resource: 'articles',
@@ -136,14 +166,14 @@ export async function getArticleBySlug(
     draft: opts.draft,
     next: opts.draft
       ? { revalidate: 0 }
-      : { revalidate: 60, tags: [`articles:slug:${normalised}`] },
+      : { revalidate: 60, tags: [`articles:slug:${aliasPath}`] },
     query: {
       include: ['image'],
       fields: {
         'node--article': [...ARTICLE_FIELDS],
         'file--file': [...FILE_FIELDS],
       },
-      filter: { 'slug': normalised },
+      filter: { 'path.alias': aliasPath },
       page: { limit: 1 },
     },
   });
@@ -178,20 +208,32 @@ export async function getArticleById(
 
 /** Return just `id` + `slug` — used by generateStaticParams. */
 export async function getArticleSlugs(): Promise<Array<{ slug: string }>> {
-  const response = await drupalFetch({
-    resource: 'articles',
-    schema: articleCollectionResponse,
-    next: { revalidate: 300, tags: ['articles:slugs'] },
-    query: {
-      fields: { 'node--article': ['slug', 'published'] },
-      sort: ['-createdAt'],
-      page: { limit: 100 },
-      filter: { 'published': true },
-    },
-  });
+  try {
+    const response = await drupalFetch({
+      resource: 'articles',
+      schema: articleCollectionResponse,
+      next: { revalidate: 300, tags: ['articles:slugs'] },
+      query: {
+        fields: { 'node--article': ['slug', 'published'] },
+        sort: ['-createdAt'],
+        page: { limit: 100 },
+        filter: { 'published': true },
+      },
+    });
 
-  return response.data
-    .map((r) => r.attributes.slug)
-    .filter((s): s is string => Boolean(s))
-    .map((s) => ({ slug: s.replace(/^\/articles\//, '') }));
+    return response.data
+      .map((r) => r.attributes.slug)
+      .filter((s): s is string => Boolean(s))
+      .map((s) => ({ slug: s.replace(/^\/articles\//, '') }));
+  } catch (error) {
+    if (isBackendUnreachable(error)) {
+      // No live backend at build time: pre-render nothing and let
+      // dynamicParams + ISR generate each article page on first request.
+      console.warn(
+        '[drupal] Backend unreachable while collecting slugs; skipping static pre-render.',
+      );
+      return [];
+    }
+    throw error;
+  }
 }

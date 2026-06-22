@@ -58,7 +58,7 @@ exists to make those cheap.
 1. RSC calls `getArticles()` from `src/lib/drupal/queries.ts`.
 2. The query is dispatched through `drupalFetch()` which:
    - acquires a cached bearer token via `getClientCredentialsToken()`
-   - issues `GET /jsonapi/node/article?include=field_image.field_media_image&fields[...]=...`
+   - issues `GET /jsonapi/node/article?include=image&fields[...]=...`
    - validates the response against a Zod schema before returning typed data
 3. The page is rendered statically (or via ISR with `revalidate: 60`).
 

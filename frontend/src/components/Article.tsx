@@ -8,7 +8,7 @@ interface ArticleProps {
   isDraft?: boolean;
 }
 
-export function Article({ article, isDraft = false }: ArticleProps): JSX.Element {
+export function Article({ article, isDraft = false }: ArticleProps) {
   // body.processed has already been through Drupal's filter format pipeline,
   // so user-authored markup is constrained to basic_html / full_html. We
   // re-sanitise on this side as defence-in-depth (see sanitize.ts).
@@ -56,7 +56,6 @@ export function Article({ article, isDraft = false }: ArticleProps): JSX.Element
         <div
           // Content is double-sanitised: once by Drupal's basic_html /
           // full_html filter formats server-side, again by sanitizeServerHtml.
-          // eslint-disable-next-line react/no-danger
           dangerouslySetInnerHTML={{ __html: safeHtml }}
         />
       ) : (

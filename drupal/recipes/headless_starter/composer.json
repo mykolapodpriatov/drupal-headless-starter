@@ -1,5 +1,5 @@
 {
-    "name": "korgalom/headless-starter-recipe",
+    "name": "mykolapodpriatov/headless-starter-recipe",
     "type": "drupal-recipe",
     "description": "Headless Starter recipe — JSON:API + simple_oauth + graphql_compose + Article content type.",
     "license": "GPL-2.0-or-later",

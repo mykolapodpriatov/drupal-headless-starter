@@ -49,3 +49,4 @@ drupal/keys/*.pem
 # Build artefacts
 coverage/
 *.log
+*.tsbuildinfo

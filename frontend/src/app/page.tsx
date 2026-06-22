@@ -2,6 +2,7 @@
 // articles strip refreshes every 5 minutes in production.
 
 import type { Metadata } from 'next';
+import Link from 'next/link';
 
 import { ArticleCard } from '@/components/ArticleCard';
 import { getArticles } from '@/lib/drupal/queries';
@@ -12,7 +13,7 @@ export const metadata: Metadata = {
 
 export const revalidate = 300;
 
-export default async function HomePage(): Promise<JSX.Element> {
+export default async function HomePage() {
   const articles = await getArticles({ limit: 6 });
 
   return (
@@ -22,16 +23,17 @@ export default async function HomePage(): Promise<JSX.Element> {
           Drupal 11 + Next.js 15
         </h1>
         <p className="mt-4 max-w-2xl text-lg text-[color:var(--color-muted)]">
-          A starter for headless Drupal: JSON:API and GraphQL on the backend,
-          Server Components, ISR, and editor preview on the frontend.
+          A starter for headless Drupal: a JSON:API backend (with GraphQL
+          Compose available), Server Components, ISR, and editor preview on the
+          frontend.
         </p>
         <div className="mt-6 flex gap-4">
-          <a
+          <Link
             href="/articles"
             className="inline-flex items-center rounded-md bg-[color:var(--color-accent)] px-4 py-2 text-white no-underline"
           >
             Browse articles
-          </a>
+          </Link>
           <a
             href="https://www.drupal.org/project/jsonapi_extras"
             target="_blank"

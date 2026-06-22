@@ -70,7 +70,7 @@ outbound redirect. `code_challenge_method=S256` is required.
 `scripts/install.sh` creates one for Next.js:
 
 - **Label**: `Next.js frontend`
-- **Client ID**: auto-generated UUID (printed to stdout)
+- **Client ID**: `nextjs-frontend` (the client secret is printed to stdout)
 - **Client Secret**: required for client_credentials, optional for PKCE
 - **Confidential**: yes (kept server-side)
 - **Roles**: `frontend_consumer` (read access to published + draft content)
@@ -86,7 +86,7 @@ but the JWKS endpoint is there for any consumer that wants to.
 
 1. Generate a new keypair: `openssl genrsa -out keys/private-new.key 2048 && openssl rsa -in keys/private-new.key -pubout -out keys/public-new.key`.
 2. Update `simple_oauth.settings.yml` `public_key` / `private_key` paths.
-3. `drush cr` and `drush config:import`.
+3. Re-apply the recipe (or `drush config:set` the new key paths), then `drush cr`.
 4. Old tokens become invalid the moment the old keys leave the filesystem.
 
 For zero-downtime rotation you'd want a JWKS with multiple keys — out of scope
