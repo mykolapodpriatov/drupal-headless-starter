@@ -18,7 +18,7 @@ Steps:
    admin/admin credentials; change them in any non-local environment.
 2. **OAuth keypair** — generated into `drupal/keys/` if absent. 2048-bit RSA.
 3. **Recipe apply** — runs `core/scripts/drupal recipe …/headless_starter`,
-   then `drush config:import` to pick up any drift, then `drush cr`.
+   then `drush cr`. The recipe imports its own config from `recipes/headless_starter/config/`.
 4. **OAuth consumer** — creates a `consumers` entity labelled
    `Next.js frontend` with `client_credentials + authorization_code + PKCE`
    grant types. Prints the client_id and the generated secret. Copy both into

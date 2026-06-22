@@ -28,21 +28,15 @@ install:
   - simple_oauth
   - consumers
 
-config:
-  import:
-    headless_starter:
-      - core.extension
-      - system.site
-      - node.type.article
-      - field.storage.node.body
-      - field.storage.node.field_image
-      - field.field.node.article.body
-      - field.field.node.article.field_image
-      - user.role.editor
-      - user.role.frontend_consumer
-      - simple_oauth.settings
-      - jsonapi_extras.settings
-      - jsonapi_extras.jsonapi_resource_config.node--article
+# This recipe ships its own configuration under recipes/headless_starter/config/.
+# Every YAML file in that directory is created automatically once the modules in
+# `install:` are enabled — the Article content type and its fields, the editor
+# and frontend_consumer roles, and the simple_oauth / jsonapi_extras settings.
+#
+# `config.import` is intentionally not used: that key imports configuration that
+# *other* installed modules ship, whereas everything here is authored by us. We
+# also deliberately do not manage core.extension (handled by `install:`) or
+# system.site (the site name is set by `drush site:install`).
 
 # Recipes that this recipe builds on. Drupal's own "core/recipes/article_content_type"
 # would normally do the heavy lifting, but we want full control over the field

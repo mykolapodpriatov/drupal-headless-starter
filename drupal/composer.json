@@ -1,5 +1,5 @@
 {
-    "name": "korgalom/drupal-headless-starter",
+    "name": "mykolapodpriatov/drupal-headless-starter",
     "description": "Drupal 11 backend for a headless/decoupled Next.js stack.",
     "type": "project",
     "license": "GPL-2.0-or-later",

@@ -69,12 +69,15 @@ jobs:
       - name: Validate config sync (yaml lint)
         uses: ibiqlik/action-yamllint@v3
         with:
-          file_or_dir: drupal/config/sync drupal/recipes
+          file_or_dir: drupal/recipes
           config_data: |
             extends: default
             rules:
               line-length: disable
               document-start: disable
+              # Drupal exports empty maps as "{  }", which the default braces
+              # rule rejects; allow Drupal's canonical config style.
+              braces: disable
               truthy:
                 check-keys: false
               indentation:

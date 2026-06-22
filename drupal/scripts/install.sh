@@ -63,13 +63,14 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# 3. Recipe — enables modules, imports config.
+# 3. Recipe — enables modules and imports the recipe's own config.
 # ---------------------------------------------------------------------------
+# The recipe enables every module in its `install:` list and then creates the
+# config shipped under recipes/headless_starter/config/ (Article type + fields,
+# editor/frontend_consumer roles, simple_oauth + jsonapi_extras settings).
 echo "==> Applying recipe: headless_starter"
 php "$WEB/core/scripts/drupal" recipe "$RECIPE"
 
-echo "==> Importing config/sync (idempotent)..."
-"$DRUSH" config:import --yes || true
 "$DRUSH" cache:rebuild
 
 # ---------------------------------------------------------------------------
