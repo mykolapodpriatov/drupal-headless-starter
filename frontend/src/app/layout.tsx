@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import type { ReactNode } from 'react';
 
 import '@/styles/globals.css';
@@ -27,17 +28,17 @@ interface RootLayoutProps {
   children: ReactNode;
 }
 
-export default function RootLayout({ children }: RootLayoutProps): JSX.Element {
+export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en">
       <body className="min-h-screen flex flex-col">
         <header className="border-b border-black/5 bg-white/70 backdrop-blur">
           <div className="mx-auto max-w-5xl px-6 py-4 flex items-center justify-between">
-            <a href="/" className="font-semibold text-ink no-underline">
+            <Link href="/" className="font-semibold text-ink no-underline">
               Drupal Headless Starter
-            </a>
+            </Link>
             <nav className="flex gap-6 text-sm">
-              <a href="/articles">Articles</a>
+              <Link href="/articles">Articles</Link>
               <a
                 href={process.env.NEXT_PUBLIC_DRUPAL_BASE_URL ?? '#'}
                 target="_blank"

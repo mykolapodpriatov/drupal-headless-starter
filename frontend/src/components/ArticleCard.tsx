@@ -7,7 +7,7 @@ interface ArticleCardProps {
   article: Article;
 }
 
-export function ArticleCard({ article }: ArticleCardProps): JSX.Element {
+export function ArticleCard({ article }: ArticleCardProps) {
   // Normalise the slug — Drupal hands us "/articles/foo", the route wants "foo".
   const href = article.slug.startsWith('/articles/')
     ? article.slug

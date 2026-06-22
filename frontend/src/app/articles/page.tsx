@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 
 export const revalidate = 60;
 
-export default async function ArticleListPage(): Promise<JSX.Element> {
+export default async function ArticleListPage() {
   const articles = await getArticles({ limit: 24 });
 
   return (
