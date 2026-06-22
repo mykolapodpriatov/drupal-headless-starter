@@ -77,7 +77,7 @@ JSON:API query to `?resourceVersion=rel:working-copy` and adds
 
 ## Exiting preview
 
-Hit `/api/preview/exit` (not included in this starter, ~5 lines) which calls
+Hit `/api/preview/exit` (implemented at `src/app/api/preview/exit/route.ts`) which calls
 `draftMode().disable()` and redirects back to the article. Editors can also
 just close the tab; the cookies are session-scoped.
 
