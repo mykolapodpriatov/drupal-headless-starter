@@ -1,6 +1,7 @@
 name: CI - Frontend (Next.js)
 
 on:
+  workflow_dispatch:
   push:
     branches: [main]
     paths:
