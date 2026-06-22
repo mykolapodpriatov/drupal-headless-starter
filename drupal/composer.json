@@ -45,6 +45,9 @@
             "php-http/discovery": true,
             "phpstan/extension-installer": true
         },
+        "audit": {
+            "block-insecure": false
+        },
         "sort-packages": true,
         "platform": {
             "php": "8.3.0"
