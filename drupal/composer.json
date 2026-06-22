@@ -26,6 +26,12 @@
     },
     "minimum-stability": "stable",
     "prefer-stable": true,
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://packages.drupal.org/8"
+        }
+    ],
     "conflict": {
         "drupal/drupal": "*"
     },
