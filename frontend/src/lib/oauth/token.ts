@@ -9,6 +9,8 @@
 
 import 'server-only';
 
+import { env } from '@/lib/env';
+
 interface CachedToken {
   accessToken: string;
   /** Unix epoch (ms) when the token actually expires. */
@@ -33,16 +35,19 @@ const cache = new Map<string, CachedToken>();
 const SAFETY_WINDOW_MS = 60_000;
 
 interface GetTokenOptions {
-  baseUrl: string;
-  clientId: string;
-  clientSecret: string;
+  baseUrl?: string;
+  clientId?: string;
+  clientSecret?: string;
   scope?: string;
 }
 
 export async function getClientCredentialsToken(
-  opts: GetTokenOptions,
+  opts: GetTokenOptions = {},
 ): Promise<string> {
-  const { baseUrl, clientId, clientSecret, scope } = opts;
+  const baseUrl = opts.baseUrl ?? env.DRUPAL_BASE_URL;
+  const clientId = opts.clientId ?? env.DRUPAL_CLIENT_ID;
+  const clientSecret = opts.clientSecret ?? env.DRUPAL_CLIENT_SECRET;
+  const { scope } = opts;
 
   const cached = cache.get(clientId);
   if (cached && cached.expiresAt - SAFETY_WINDOW_MS > Date.now()) {

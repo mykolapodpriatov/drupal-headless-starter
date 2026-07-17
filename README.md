@@ -73,6 +73,12 @@ Next.js is at `http://localhost:3000`.
 | `DRUPAL_PREVIEW_SECRET` | both | Shared secret for the preview handshake |
 | `NEXT_PUBLIC_FRONTEND_URL` | Drupal | Used for CORS + preview redirects |
 
+These variables are validated at startup by
+[`frontend/src/lib/env.ts`](frontend/src/lib/env.ts) with zod. If any are
+missing or malformed, the frontend fails fast at boot with an error naming
+**every** offending key at once — so a broken `.env.local` or a missing
+CI/Vercel var surfaces immediately instead of as a runtime 500 mid-request.
+
 ## Auth flow
 
 OAuth2 with `simple_oauth`. Two flows are wired:
