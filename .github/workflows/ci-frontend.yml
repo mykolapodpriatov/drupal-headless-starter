@@ -58,6 +58,9 @@ jobs:
       - name: ESLint
         run: pnpm lint
 
+      - name: Unit tests (Vitest)
+        run: pnpm test
+
       - name: Next.js build
         run: pnpm build
 
