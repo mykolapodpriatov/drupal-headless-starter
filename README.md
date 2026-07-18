@@ -107,6 +107,22 @@ Drupal and Next.js are deployed independently — see
 the OAuth env vars set. The frontend never needs filesystem access to the
 Drupal install.
 
+## Security
+
+Before pointing a real domain at the stack, work through the hardening
+checklist in [`docs/security.md`](docs/security.md): keeping OAuth/preview
+secrets server-side, tightening `simple_oauth` scopes, locking CORS to your
+frontend origin, rotating the keys in `drupal/keys/`, and the preview-secret
+threat model.
+
+## Docs
+
+- [`docs/architecture.md`](docs/architecture.md) — how the pieces fit together
+- [`docs/auth-flow.md`](docs/auth-flow.md) — OAuth sequence diagrams
+- [`docs/preview-mode.md`](docs/preview-mode.md) — draft preview handshake
+- [`docs/deploy.md`](docs/deploy.md) — independent Drupal + Next.js deploys
+- [`docs/security.md`](docs/security.md) — security & hardening checklist
+
 ## License
 
 MIT — see [`LICENSE`](LICENSE).
