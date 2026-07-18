@@ -13,19 +13,12 @@ import 'server-only';
 
 import type { z, ZodTypeAny } from 'zod';
 
+import { env } from '@/lib/env';
 import {
   getClientCredentialsToken,
   OAuthError,
   invalidateToken,
 } from '@/lib/oauth/token';
-
-const DRUPAL_BASE_URL = process.env.DRUPAL_BASE_URL;
-const DRUPAL_CLIENT_ID = process.env.DRUPAL_CLIENT_ID;
-const DRUPAL_CLIENT_SECRET = process.env.DRUPAL_CLIENT_SECRET;
-
-if (!DRUPAL_BASE_URL) {
-  throw new Error('DRUPAL_BASE_URL is required');
-}
 
 /** ----------------------------------------------------------------------
  * Query helpers
@@ -125,14 +118,7 @@ export interface DrupalFetchOptions<S extends ZodTypeAny> {
 }
 
 async function authHeader(): Promise<Record<string, string>> {
-  if (!DRUPAL_CLIENT_ID || !DRUPAL_CLIENT_SECRET) {
-    return {};
-  }
-  const token = await getClientCredentialsToken({
-    baseUrl: DRUPAL_BASE_URL!,
-    clientId: DRUPAL_CLIENT_ID,
-    clientSecret: DRUPAL_CLIENT_SECRET,
-  });
+  const token = await getClientCredentialsToken();
   return { Authorization: `Bearer ${token}` };
 }
 
@@ -144,7 +130,10 @@ export async function drupalFetch<S extends ZodTypeAny>(
     query.resourceVersion = query.resourceVersion ?? 'rel:working-copy';
   }
   const qs = buildJsonApiQuery(query);
-  const url = new URL(`/jsonapi/${opts.resource}${qs ? `?${qs}` : ''}`, DRUPAL_BASE_URL).toString();
+  const url = new URL(
+    `/jsonapi/${opts.resource}${qs ? `?${qs}` : ''}`,
+    env.DRUPAL_BASE_URL,
+  ).toString();
 
   const headers: Record<string, string> = {
     Accept: 'application/vnd.api+json',
@@ -167,8 +156,8 @@ export async function drupalFetch<S extends ZodTypeAny>(
   let res = await performRequest();
 
   // Retry once on a 401 — token might have been invalidated server-side.
-  if (res.status === 401 && !opts.anonymous && DRUPAL_CLIENT_ID) {
-    invalidateToken(DRUPAL_CLIENT_ID);
+  if (res.status === 401 && !opts.anonymous) {
+    invalidateToken(env.DRUPAL_CLIENT_ID);
     Object.assign(headers, await authHeader());
     res = await performRequest();
   }
