@@ -19,6 +19,7 @@ export default defineConfig({
       DRUPAL_CLIENT_ID: 'test-client',
       DRUPAL_CLIENT_SECRET: 'test-secret',
       DRUPAL_PREVIEW_SECRET: 'test-preview',
+      DRUPAL_REVALIDATE_SECRET: 'test-revalidate',
     },
   },
   resolve: {

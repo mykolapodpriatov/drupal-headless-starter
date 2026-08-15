@@ -53,6 +53,7 @@ behind a non-Cloudflare CDN.
    - `NEXT_PUBLIC_DRUPAL_BASE_URL` — public URL (for `<Image>` and previews)
    - `DRUPAL_CLIENT_ID`, `DRUPAL_CLIENT_SECRET`
    - `DRUPAL_PREVIEW_SECRET`
+   - `DRUPAL_REVALIDATE_SECRET`
    - `NEXT_PUBLIC_FRONTEND_URL`
 5. Add `*.drupal.example.com` to `next.config.js` `images.remotePatterns`.
 
@@ -62,15 +63,56 @@ Same env vars. `@netlify/plugin-nextjs` handles ISR + on-demand revalidation.
 
 ## Cache invalidation
 
-Two options:
+Two options, used together:
 
-1. **Time-based** — `revalidate: 60` on every page. Simple, "good enough" for
-   content sites with edits per hour.
-2. **On-demand** — Drupal sends a webhook to
-   `POST /api/revalidate?tag=node:{uuid}` on `entity_update` / `entity_delete`.
-   Next.js calls `revalidateTag(tag)`. Pair with `fetch(url, { next: { tags: [...] } })`
-   in the queries. This starter doesn't ship the route, but the JSON:API client
-   already tags fetches — flipping it on is a 10-line route handler.
+1. **Time-based** — `revalidate: 60` on article list/detail fetches. Simple,
+   "good enough" for content sites with edits per hour, and a fallback if
+   the webhook never fires.
+2. **On-demand** — `POST /api/revalidate` on the Next.js app. Drupal (or any
+   deploy hook) sends a shared secret plus one or more cache tags; the route
+   calls `revalidateTag()` for each so the next request refetches immediately.
+
+### Endpoint
+
+```
+POST /api/revalidate
+```
+
+`secret` and `tag` (or `tags[]`) may live on the query string or in a JSON /
+`application/x-www-form-urlencoded` body. Missing or wrong `secret` → `401`.
+Missing tag → `400`. Success → `200` with `{ "revalidated": ["…"] }`.
+
+The secret is `DRUPAL_REVALIDATE_SECRET` (same value on the caller and the
+Next.js env). Do not put it in `NEXT_PUBLIC_*`.
+
+```bash
+# Single tag on the query string
+curl -sf -X POST \
+  "https://www.example.com/api/revalidate?secret=$DRUPAL_REVALIDATE_SECRET&tag=articles:list"
+
+# Several tags in a JSON body
+curl -sf -X POST https://www.example.com/api/revalidate \
+  -H 'Content-Type: application/json' \
+  -d "{\"secret\":\"$DRUPAL_REVALIDATE_SECRET\",\"tags\":[\"articles:list\",\"articles:id:<uuid>\"]}"
+```
+
+### Tag naming convention
+
+Queries in `frontend/src/lib/drupal/queries.ts` already attach these tags to
+`fetch()`. Post the matching tag after an edit:
+
+| Tag | What it covers |
+|---|---|
+| `articles:list` | Article listing (`getArticles`) |
+| `articles:slug:/articles/<slug>` | One article by path alias (`getArticleBySlug`) |
+| `articles:id:<uuid>` | One article by node UUID (`getArticleById`) |
+| `articles:slugs` | `generateStaticParams` slug list (`getArticleSlugs`) |
+
+A typical node save should invalidate the list, the slug list, and that
+node's slug + id tags so the listing and the permalink both refresh.
+
+Wiring Drupal's `hook_entity_update` / `hook_entity_delete` to POST here is
+left as a follow-up — the webhook is ready to receive it.
 
 ## Observability
 
