@@ -8,6 +8,7 @@ const VALID: Record<string, string> = {
   DRUPAL_CLIENT_ID: 'nextjs-frontend',
   DRUPAL_CLIENT_SECRET: 'shhh',
   DRUPAL_PREVIEW_SECRET: 'preview-secret',
+  DRUPAL_REVALIDATE_SECRET: 'revalidate-secret',
   NEXT_PUBLIC_FRONTEND_URL: 'http://localhost:3000',
 };
 

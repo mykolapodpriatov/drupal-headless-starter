@@ -17,6 +17,7 @@ const envSchema = z.object({
   DRUPAL_CLIENT_ID: z.string().min(1),
   DRUPAL_CLIENT_SECRET: z.string().min(1),
   DRUPAL_PREVIEW_SECRET: z.string().min(1),
+  DRUPAL_REVALIDATE_SECRET: z.string().min(1),
   NEXT_PUBLIC_FRONTEND_URL: z.string().url(),
 });
 
