@@ -32,7 +32,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en">
       <body className="min-h-screen flex flex-col">
-        <header className="border-b border-black/5 bg-white/70 backdrop-blur">
+        <header className="border-b border-[color:var(--color-border)] bg-[color:var(--color-surface)] backdrop-blur">
           <div className="mx-auto max-w-5xl px-6 py-4 flex items-center justify-between">
             <Link href="/" className="font-semibold text-ink no-underline">
               Drupal Headless Starter
@@ -55,7 +55,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
           <div className="mx-auto max-w-5xl px-6 py-12">{children}</div>
         </main>
 
-        <footer className="border-t border-black/5 mt-12">
+        <footer className="border-t border-[color:var(--color-border)] mt-12">
           <div className="mx-auto max-w-5xl px-6 py-6 text-sm text-[color:var(--color-muted)] flex justify-between">
             <span>Drupal 11 + Next.js 15</span>
             <span>MIT</span>

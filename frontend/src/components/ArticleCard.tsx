@@ -16,7 +16,9 @@ export function ArticleCard({ article }: ArticleCardProps) {
   return (
     <Link
       href={href}
-      className="group block rounded-lg border border-black/10 overflow-hidden no-underline hover:shadow-md transition-shadow"
+      // h-full + flex so cards in a row line up even when one title wraps to
+      // two lines; the grid stretches the item, the card fills it.
+      className="group flex h-full flex-col overflow-hidden rounded-lg border border-[color:var(--color-border)] no-underline transition-shadow hover:shadow-md"
     >
       {article.image ? (
         <div className="aspect-[16/9] relative bg-black/5">
@@ -31,7 +33,7 @@ export function ArticleCard({ article }: ArticleCardProps) {
       ) : (
         <div className="aspect-[16/9] bg-black/5" aria-hidden />
       )}
-      <div className="p-4 space-y-2">
+      <div className="flex flex-1 flex-col gap-2 p-4">
         <h3 className="font-semibold text-ink group-hover:text-[color:var(--color-accent)] transition-colors">
           {article.title}
         </h3>
