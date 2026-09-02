@@ -1,0 +1,78 @@
+name: Deploy Storybook to GitHub Pages
+
+# What gets published and why:
+#
+# GitHub Pages serves static files only, and this app is not a static app —
+# Server Actions are explicitly unsupported by `output: export`, and preview
+# mode, the revalidation webhook and the OAuth callback are all route handlers.
+# A static export would therefore have to drop the contact form, preview and
+# ISR: three of the four things this starter exists to demonstrate.
+#
+# So Pages hosts Storybook instead — every component in every state, including
+# states that are unreachable in a running app (the draft banner, a Drupal 422,
+# markup the sanitiser has to strip). The full application deploys to Vercel;
+# see the README.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/deploy-pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Never cancel a running publish; queue behind it instead.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build Storybook
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.2
+          run_install: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'pnpm'
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build Storybook
+        run: pnpm build-storybook --quiet
+        env:
+          STORYBOOK_BASE_PATH: /${{ github.event.repository.name }}/
+
+      # Pages runs Jekyll over the artefact unless told not to; Storybook emits
+      # files and directories beginning with an underscore, which Jekyll drops.
+      - name: Disable Jekyll processing
+        run: touch storybook-static/.nojekyll
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: frontend/storybook-static
+
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on: ubuntu-22.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

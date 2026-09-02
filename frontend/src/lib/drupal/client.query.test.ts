@@ -87,9 +87,7 @@ describe('buildJsonApiQuery', () => {
 
   describe('sort', () => {
     it('joins sort fields with a comma preserving direction prefixes', () => {
-      const params = parse(
-        buildJsonApiQuery({ sort: ['-created', 'title'] }),
-      );
+      const params = parse(buildJsonApiQuery({ sort: ['-created', 'title'] }));
       expect(params.get('sort')).toBe('-created,title');
     });
 

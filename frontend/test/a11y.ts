@@ -33,7 +33,10 @@ export async function expectNoA11yViolations(
   });
 
   const blocking = results.violations.filter(
-    (v) => v.impact !== null && v.impact !== undefined && BLOCKING_IMPACTS.has(v.impact),
+    (v) =>
+      v.impact !== null &&
+      v.impact !== undefined &&
+      BLOCKING_IMPACTS.has(v.impact),
   );
 
   expect(

@@ -86,7 +86,10 @@ export async function getClientCredentialsToken(
 
   const json = (await res.json()) as TokenResponse;
   if (!json.access_token || typeof json.expires_in !== 'number') {
-    throw new OAuthError('OAuth token response missing access_token or expires_in', 500);
+    throw new OAuthError(
+      'OAuth token response missing access_token or expires_in',
+      500,
+    );
   }
 
   cache.set(clientId, {

@@ -31,7 +31,9 @@ function safeEqual(a: string, b: string): boolean {
 function asStrings(value: unknown): string[] {
   if (typeof value === 'string' && value.length > 0) return [value];
   if (Array.isArray(value)) {
-    return value.filter((v): v is string => typeof v === 'string' && v.length > 0);
+    return value.filter(
+      (v): v is string => typeof v === 'string' && v.length > 0,
+    );
   }
   return [];
 }
@@ -109,7 +111,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     );
   }
 
-  const tags = uniqueTags([...tagsFromSearchParams(searchParams), ...body.tags]);
+  const tags = uniqueTags([
+    ...tagsFromSearchParams(searchParams),
+    ...body.tags,
+  ]);
   if (tags.length === 0) {
     return NextResponse.json({ error: 'Missing tag.' }, { status: 400 });
   }

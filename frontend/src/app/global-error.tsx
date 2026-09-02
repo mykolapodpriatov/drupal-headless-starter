@@ -23,7 +23,9 @@ export default function GlobalError({
 
   return (
     <html lang="en">
-      <body style={{ fontFamily: 'system-ui, sans-serif', padding: '4rem 1rem' }}>
+      <body
+        style={{ fontFamily: 'system-ui, sans-serif', padding: '4rem 1rem' }}
+      >
         <ErrorState
           title="The application failed to start"
           description="A problem in the root layout stopped the page from rendering."

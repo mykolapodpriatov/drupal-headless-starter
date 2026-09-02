@@ -4,7 +4,9 @@ test.describe('article browsing', () => {
   test('lists the articles Drupal published', async ({ page }) => {
     await page.goto('/articles');
 
-    await expect(page.getByRole('heading', { level: 1, name: 'Articles' })).toBeVisible();
+    await expect(
+      page.getByRole('heading', { level: 1, name: 'Articles' }),
+    ).toBeVisible();
     await expect(page.getByRole('listitem')).toHaveCount(3);
     await expect(
       page.getByRole('heading', { name: 'Decoupling Drupal' }),
@@ -20,7 +22,9 @@ test.describe('article browsing', () => {
       page.getByRole('heading', { level: 1, name: 'Decoupling Drupal' }),
     ).toBeVisible();
     // Body arrives as Drupal's processed HTML and is rendered, not escaped.
-    await expect(page.getByRole('heading', { level: 2, name: 'Section' })).toBeVisible();
+    await expect(
+      page.getByRole('heading', { level: 2, name: 'Section' }),
+    ).toBeVisible();
   });
 
   test('renders the side-loaded image with its alt text', async ({ page }) => {
@@ -39,10 +43,14 @@ test.describe('article browsing', () => {
     await expect(
       page.getByRole('heading', { name: 'Article not found' }),
     ).toBeVisible();
-    await expect(page.getByRole('link', { name: /browse all articles/i })).toBeVisible();
+    await expect(
+      page.getByRole('link', { name: /browse all articles/i }),
+    ).toBeVisible();
   });
 
-  test('does not expose an unpublished article to anonymous visitors', async ({ page }) => {
+  test('does not expose an unpublished article to anonymous visitors', async ({
+    page,
+  }) => {
     const response = await page.goto('/articles/pricing-changes');
 
     expect(response?.status()).toBe(404);

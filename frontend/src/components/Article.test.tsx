@@ -28,7 +28,9 @@ describe('<Article />', () => {
   it('shows a placeholder when the article has no body', () => {
     render(<Article article={articleWithoutBodyFixture} />);
 
-    expect(screen.getByText('This article has no body yet.')).toBeInTheDocument();
+    expect(
+      screen.getByText('This article has no body yet.'),
+    ).toBeInTheDocument();
   });
 
   it('hides the preview banner on a published view', () => {

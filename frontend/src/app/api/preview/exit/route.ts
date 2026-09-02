@@ -12,6 +12,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   const { searchParams } = new URL(req.url);
   const target = searchParams.get('redirect') ?? '/';
   // Only allow internal redirects.
-  const safe = target.startsWith('/') && !target.startsWith('//') ? target : '/';
+  const safe =
+    target.startsWith('/') && !target.startsWith('//') ? target : '/';
   return NextResponse.redirect(new URL(safe, req.url));
 }

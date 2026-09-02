@@ -10,7 +10,8 @@
  *   back into Drupal (preview, JSON:API debug, etc.).
  */
 
-const publicDrupalUrl = process.env.NEXT_PUBLIC_DRUPAL_BASE_URL || 'http://localhost';
+const publicDrupalUrl =
+  process.env.NEXT_PUBLIC_DRUPAL_BASE_URL || 'http://localhost';
 
 /** @type {URL} */
 const drupalUrl = new URL(publicDrupalUrl);
@@ -26,7 +27,9 @@ const nextConfig = {
   images: {
     remotePatterns: [
       {
-        protocol: /** @type {'http' | 'https'} */ (drupalUrl.protocol.replace(':', '')),
+        protocol: /** @type {'http' | 'https'} */ (
+          drupalUrl.protocol.replace(':', '')
+        ),
         hostname: drupalUrl.hostname,
         port: drupalUrl.port || '',
         pathname: '/sites/default/files/**',

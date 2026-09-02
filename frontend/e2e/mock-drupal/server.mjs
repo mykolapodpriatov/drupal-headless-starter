@@ -38,9 +38,12 @@ function collection(data) {
 }
 
 function handleArticles(url) {
-  const isDraft = url.searchParams.get('resourceVersion') === 'rel:working-copy';
+  const isDraft =
+    url.searchParams.get('resourceVersion') === 'rel:working-copy';
   const alias = url.searchParams.get('filter[path.alias]');
-  const pool = isDraft ? [...publishedArticles, draftArticle] : publishedArticles;
+  const pool = isDraft
+    ? [...publishedArticles, draftArticle]
+    : publishedArticles;
 
   if (alias) {
     const match = pool.find((a) => a.attributes.slug === alias);
@@ -86,7 +89,10 @@ const server = createServer(async (req, res) => {
     );
   }
 
-  if (req.method === 'POST' && url.pathname === '/jsonapi/node/contact_message') {
+  if (
+    req.method === 'POST' &&
+    url.pathname === '/jsonapi/node/contact_message'
+  ) {
     const raw = await readBody(req);
     let email = '';
     try {
@@ -95,13 +101,18 @@ const server = createServer(async (req, res) => {
       /* unparseable body — fall through to the generic accept */
     }
     if (email === REJECTED_EMAIL) return send(res, 422, contactErrors(email));
-    return send(res, 201, { data: { id: '66666666-6666-4666-8666-666666666666' } });
+    return send(res, 201, {
+      data: { id: '66666666-6666-4666-8666-666666666666' },
+    });
   }
 
   // Serve the actual image bytes too — next/image proxies the file through the
   // optimizer, and a 404 there fills the server log with upstream errors that
   // look like real failures during a test run.
-  if (req.method === 'GET' && url.pathname === '/sites/default/files/hero.jpg') {
+  if (
+    req.method === 'GET' &&
+    url.pathname === '/sites/default/files/hero.jpg'
+  ) {
     // Smallest valid JPEG that decodes: a 1x1 grey pixel.
     const jpeg = Buffer.from(
       '/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0a' +

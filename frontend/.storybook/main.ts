@@ -16,6 +16,12 @@ const config: StorybookConfig = {
     check: false,
     reactDocgen: 'react-docgen-typescript',
   },
+  // GitHub Pages serves the build under /<repo>/, so assets need that prefix.
+  // Locally STORYBOOK_BASE_PATH is unset and the default '/' applies.
+  viteFinal: (viteConfig) => ({
+    ...viteConfig,
+    base: process.env.STORYBOOK_BASE_PATH ?? '/',
+  }),
 };
 
 export default config;

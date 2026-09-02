@@ -12,7 +12,9 @@ describe('<ErrorState />', () => {
   });
 
   it('renders the supplied title and description', () => {
-    render(<ErrorState title="Articles unavailable" description="Drupal is down." />);
+    render(
+      <ErrorState title="Articles unavailable" description="Drupal is down." />,
+    );
 
     expect(
       screen.getByRole('heading', { name: 'Articles unavailable' }),
@@ -45,7 +47,9 @@ describe('<ErrorState />', () => {
 
   it('never leaks the error message to the browser', () => {
     const error = Object.assign(
-      new Error('Drupal returned 500 for http://drupal.internal/jsonapi/articles?filter[secret]=x'),
+      new Error(
+        'Drupal returned 500 for http://drupal.internal/jsonapi/articles?filter[secret]=x',
+      ),
       { digest: 'abc123' },
     );
     render(<ErrorState error={error} />);

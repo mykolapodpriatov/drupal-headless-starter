@@ -12,20 +12,32 @@ describe('sanitizeServerHtml', () => {
     });
 
     it('strips <iframe> tags', () => {
-      const out = sanitizeServerHtml('<iframe src="https://evil.example"></iframe>');
+      const out = sanitizeServerHtml(
+        '<iframe src="https://evil.example"></iframe>',
+      );
       expect(out).not.toContain('<iframe');
       expect(out).not.toContain('</iframe');
     });
 
     it('strips <style> tags', () => {
-      const out = sanitizeServerHtml('<style>body{display:none}</style><p>hi</p>');
+      const out = sanitizeServerHtml(
+        '<style>body{display:none}</style><p>hi</p>',
+      );
       expect(out).not.toContain('<style');
       expect(out).not.toContain('</style');
       expect(out).toContain('<p>hi</p>');
     });
 
     it('strips the full set of dangerous tags', () => {
-      for (const tag of ['script', 'iframe', 'object', 'embed', 'link', 'meta', 'style']) {
+      for (const tag of [
+        'script',
+        'iframe',
+        'object',
+        'embed',
+        'link',
+        'meta',
+        'style',
+      ]) {
         const out = sanitizeServerHtml(`<${tag}></${tag}>`);
         expect(out).not.toContain(`<${tag}`);
         expect(out).not.toContain(`</${tag}`);

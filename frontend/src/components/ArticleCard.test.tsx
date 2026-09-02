@@ -26,9 +26,7 @@ describe('<ArticleCard />', () => {
   });
 
   it('normalises a bare slug into the /articles/ route', () => {
-    render(
-      <ArticleCard article={{ ...articleFixture, slug: 'bare-slug' }} />,
-    );
+    render(<ArticleCard article={{ ...articleFixture, slug: 'bare-slug' }} />);
 
     expect(screen.getByRole('link')).toHaveAttribute(
       'href',

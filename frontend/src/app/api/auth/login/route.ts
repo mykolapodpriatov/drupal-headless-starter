@@ -18,7 +18,8 @@ const RETURN_COOKIE = 'oauth_return_to';
 export async function GET(req: NextRequest): Promise<NextResponse> {
   const drupalUrl = process.env.NEXT_PUBLIC_DRUPAL_BASE_URL;
   const clientId = process.env.DRUPAL_CLIENT_ID;
-  const frontendUrl = process.env.NEXT_PUBLIC_FRONTEND_URL ?? new URL(req.url).origin;
+  const frontendUrl =
+    process.env.NEXT_PUBLIC_FRONTEND_URL ?? new URL(req.url).origin;
 
   if (!drupalUrl || !clientId) {
     return NextResponse.json(
@@ -29,14 +30,18 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
   const { searchParams } = new URL(req.url);
   const returnTo = searchParams.get('return_to') ?? '/';
-  const safeReturn = returnTo.startsWith('/') && !returnTo.startsWith('//') ? returnTo : '/';
+  const safeReturn =
+    returnTo.startsWith('/') && !returnTo.startsWith('//') ? returnTo : '/';
 
   const pair = createPkcePair();
 
   const authorizeUrl = new URL('/oauth/authorize', drupalUrl);
   authorizeUrl.searchParams.set('response_type', 'code');
   authorizeUrl.searchParams.set('client_id', clientId);
-  authorizeUrl.searchParams.set('redirect_uri', `${frontendUrl}/api/auth/callback`);
+  authorizeUrl.searchParams.set(
+    'redirect_uri',
+    `${frontendUrl}/api/auth/callback`,
+  );
   authorizeUrl.searchParams.set('scope', 'editor');
   authorizeUrl.searchParams.set('state', pair.state);
   authorizeUrl.searchParams.set('code_challenge', pair.challenge);

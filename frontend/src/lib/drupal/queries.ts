@@ -28,9 +28,11 @@ const ARTICLE_FIELDS = [
 
 const FILE_FIELDS = ['uri', 'filemime', 'filesize'] as const;
 
-const articleCollectionResponse = jsonApiCollectionSchema(articleSchema).extend({
-  included: z.array(fileResourceSchema).optional(),
-});
+const articleCollectionResponse = jsonApiCollectionSchema(articleSchema).extend(
+  {
+    included: z.array(fileResourceSchema).optional(),
+  },
+);
 
 const articleSingleResponse = jsonApiSingleSchema(articleSchema).extend({
   included: z.array(fileResourceSchema).optional(),
@@ -94,7 +96,7 @@ export async function getArticles(
         },
         sort: ['-createdAt'],
         page: { limit, offset },
-        filter: opts.draft ? {} : { 'published': true },
+        filter: opts.draft ? {} : { published: true },
       },
     });
 
@@ -184,7 +186,7 @@ export async function getArticleSlugs(): Promise<Array<{ slug: string }>> {
         fields: { 'node--article': ['slug', 'published'] },
         sort: ['-createdAt'],
         page: { limit: 100 },
-        filter: { 'published': true },
+        filter: { published: true },
       },
     });
 

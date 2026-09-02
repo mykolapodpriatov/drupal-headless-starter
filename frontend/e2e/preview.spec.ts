@@ -4,7 +4,9 @@ const SECRET = 'e2e-preview-secret';
 
 test.describe('preview mode', () => {
   test('rejects a request without the shared secret', async ({ request }) => {
-    const response = await request.get('/api/preview?slug=/articles/pricing-changes');
+    const response = await request.get(
+      '/api/preview?slug=/articles/pricing-changes',
+    );
 
     expect(response.status()).toBe(401);
   });
@@ -21,11 +23,16 @@ test.describe('preview mode', () => {
   test('reveals the unpublished working copy and marks it as a preview', async ({
     page,
   }) => {
-    await page.goto(`/api/preview?secret=${SECRET}&slug=/articles/pricing-changes`);
+    await page.goto(
+      `/api/preview?secret=${SECRET}&slug=/articles/pricing-changes`,
+    );
 
     await expect(page).toHaveURL('/articles/pricing-changes');
     await expect(
-      page.getByRole('heading', { level: 1, name: 'Unpublished pricing changes' }),
+      page.getByRole('heading', {
+        level: 1,
+        name: 'Unpublished pricing changes',
+      }),
     ).toBeVisible();
     await expect(page.getByText(/Preview mode/)).toBeVisible();
     await expect(
@@ -34,7 +41,9 @@ test.describe('preview mode', () => {
   });
 
   test('exiting preview hides the draft again', async ({ page }) => {
-    await page.goto(`/api/preview?secret=${SECRET}&slug=/articles/pricing-changes`);
+    await page.goto(
+      `/api/preview?secret=${SECRET}&slug=/articles/pricing-changes`,
+    );
     await expect(page.getByText(/Preview mode/)).toBeVisible();
 
     await page.goto('/api/preview/exit');

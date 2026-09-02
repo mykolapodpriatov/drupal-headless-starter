@@ -51,7 +51,10 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   const slug = searchParams.get('slug');
 
   if (!provided || !safeEqual(provided, expected)) {
-    return NextResponse.json({ error: 'Invalid preview secret.' }, { status: 401 });
+    return NextResponse.json(
+      { error: 'Invalid preview secret.' },
+      { status: 401 },
+    );
   }
 
   if (!slug || !isSafeInternalPath(slug)) {

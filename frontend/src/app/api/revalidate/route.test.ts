@@ -19,7 +19,9 @@ function post(
 ): NextRequest {
   // NextRequest declares its own RequestInit; borrow it so
   // `exactOptionalPropertyTypes` lines up with the constructor signature.
-  type NextRequestInit = NonNullable<ConstructorParameters<typeof NextRequest>[1]>;
+  type NextRequestInit = NonNullable<
+    ConstructorParameters<typeof NextRequest>[1]
+  >;
   const requestInit: NextRequestInit = { method: 'POST' };
   if (init?.headers !== undefined) requestInit.headers = init.headers;
   if (init?.body !== undefined) requestInit.body = init.body;

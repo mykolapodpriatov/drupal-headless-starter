@@ -17,7 +17,14 @@ export const files = [
   },
 ];
 
-function article({ id, title, slug, published = true, body, withImage = false }) {
+function article({
+  id,
+  title,
+  slug,
+  published = true,
+  body,
+  withImage = false,
+}) {
   return {
     id,
     type: 'node--article',
@@ -35,7 +42,11 @@ function article({ id, title, slug, published = true, body, withImage = false })
       },
     },
     ...(withImage
-      ? { relationships: { image: { data: { id: FILE_ID, type: 'file--file' } } } }
+      ? {
+          relationships: {
+            image: { data: { id: FILE_ID, type: 'file--file' } },
+          },
+        }
       : {}),
   };
 }
