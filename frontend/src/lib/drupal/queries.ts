@@ -114,13 +114,18 @@ export async function getArticleBySlug(
   slug: string,
   opts: { draft?: boolean } = {},
 ): Promise<Article | null> {
-  // `slug` is the bare alias segment from the route (e.g. "my-post"); the
-  // node's stored path alias is "/articles/<slug>". JSON:API can filter on the
-  // computed path alias directly via `path.alias`, which is more reliable than
+  // The node's stored path alias is "/articles/<slug>". Callers hand us either
+  // the bare route segment ("my-post") or the full alias
+  // ("/articles/my-post") — accept both and normalise once, because building
+  // the prefix at the call site is how you end up querying
+  // "/articles/articles/my-post" and 404ing every detail page.
+  //
+  // JSON:API filters on the computed `path.alias`, which is more reliable than
   // filtering the renamed `slug` attribute (an alias of `path.alias` produced
   // by a jsonapi_extras enhancer). Articles need an alias for this lookup to
   // resolve — e.g. a pathauto pattern of `articles/[node:title]`.
-  const aliasPath = `/articles/${slug.replace(/^\/+/, '')}`;
+  const bare = slug.replace(/^\/+/, '').replace(/^articles\//, '');
+  const aliasPath = `/articles/${bare}`;
 
   const response = await drupalFetch({
     resource: 'articles',

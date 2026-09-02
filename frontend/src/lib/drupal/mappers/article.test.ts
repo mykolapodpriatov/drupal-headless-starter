@@ -122,3 +122,28 @@ describe('mapArticle', () => {
     expect(article).not.toHaveProperty('type');
   });
 });
+
+// Regression guard for the slug contract of getArticleBySlug. The query layer
+// is `server-only`, so the normalisation itself is asserted end-to-end in
+// e2e/articles.spec.ts; this documents the rule next to the mapper that
+// produces the value being normalised.
+describe('article slug contract', () => {
+  const normalise = (slug: string): string =>
+    `/articles/${slug.replace(/^\/+/, '').replace(/^articles\//, '')}`;
+
+  it('accepts a bare route segment', () => {
+    expect(normalise('decoupling-drupal')).toBe('/articles/decoupling-drupal');
+  });
+
+  it('accepts the full stored alias without doubling the prefix', () => {
+    expect(normalise('/articles/decoupling-drupal')).toBe(
+      '/articles/decoupling-drupal',
+    );
+  });
+
+  it('accepts an alias with no leading slash', () => {
+    expect(normalise('articles/decoupling-drupal')).toBe(
+      '/articles/decoupling-drupal',
+    );
+  });
+});

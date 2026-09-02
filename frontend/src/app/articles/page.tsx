@@ -4,6 +4,13 @@
 // boundary, so a slow Drupal response delays the grid rather than the whole
 // document. ISR keeps a 60s revalidate window on top of that — content edits
 // show up within a minute without a redeploy.
+//
+// Streaming is opted into *here*, per page, rather than via a segment-level
+// `loading.tsx`. A `loading.tsx` wraps every route below it in Suspense, and
+// once a response starts streaming its status code is already on the wire —
+// which turns `notFound()` on /articles/[slug] into a 200 with 404 content.
+// That is invisible in a browser and wrong for search engines and caches, so
+// the boundary lives inside the page that actually wants it.
 
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
