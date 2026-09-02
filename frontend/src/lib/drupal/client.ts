@@ -145,13 +145,19 @@ export async function drupalFetch<S extends ZodTypeAny>(
     Object.assign(headers, await authHeader());
   }
 
-  const performRequest = async (): Promise<Response> =>
-    fetch(url, {
+  const performRequest = async (): Promise<Response> => {
+    // Under `exactOptionalPropertyTypes` an explicit `body: undefined` is not
+    // assignable to RequestInit — only omitting the key is. Build it up.
+    const init: RequestInit = {
       method: opts.method ?? 'GET',
       headers,
-      body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
       next: opts.next ?? { revalidate: 60 },
-    });
+    };
+    if (opts.body !== undefined) {
+      init.body = JSON.stringify(opts.body);
+    }
+    return fetch(url, init);
+  };
 
   let res = await performRequest();
 

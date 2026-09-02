@@ -63,8 +63,9 @@ async function readBody(
   try {
     if (contentType.includes('application/json')) {
       const body = (await req.json()) as Record<string, unknown>;
+      const secret = typeof body.secret === 'string' ? body.secret : undefined;
       return {
-        secret: typeof body.secret === 'string' ? body.secret : undefined,
+        ...(secret !== undefined ? { secret } : {}),
         tags: [
           ...asStrings(body.tag),
           ...asStrings(body.tags),
@@ -78,8 +79,9 @@ async function readBody(
     ) {
       const form = await req.formData();
       const secretVal = form.get('secret');
+      const secret = typeof secretVal === 'string' ? secretVal : undefined;
       return {
-        secret: typeof secretVal === 'string' ? secretVal : undefined,
+        ...(secret !== undefined ? { secret } : {}),
         tags: [
           ...form.getAll('tag'),
           ...form.getAll('tags'),
