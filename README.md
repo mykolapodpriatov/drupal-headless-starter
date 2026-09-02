@@ -45,7 +45,7 @@ Client Credentials for the server-to-server fetches that power ISR builds.
 
 ## Quickstart
 
-Prerequisites: DDEV, Docker, Node 20, pnpm or npm.
+Prerequisites: DDEV, Docker, Node 22+, pnpm 10.
 
 ```bash
 # 1. Boot the full stack (Drupal + Node)
