@@ -54,7 +54,10 @@ describe('accessibility', () => {
 
   it('ErrorState has no violations', async () => {
     const { container } = render(
-      <ErrorState reset={() => undefined} error={Object.assign(new Error('x'), { digest: 'd1' })} />,
+      <ErrorState
+        reset={() => undefined}
+        error={Object.assign(new Error('x'), { digest: 'd1' })}
+      />,
     );
 
     await expectNoA11yViolations(container);
@@ -68,7 +71,9 @@ describe('accessibility', () => {
 
   it('ContactForm has no violations while showing errors', async () => {
     const user = userEvent.setup();
-    const { container, findAllByRole } = render(<ContactForm action={vi.fn()} />);
+    const { container, findAllByRole } = render(
+      <ContactForm action={vi.fn()} />,
+    );
 
     await user.click(container.querySelector('button[type="submit"]')!);
     await findAllByRole('alert');

@@ -42,7 +42,9 @@ test.describe('contact form', () => {
     await expect(page.getByRole('status')).toContainText('on its way');
   });
 
-  test('surfaces a Drupal 422 on the field that caused it', async ({ page }) => {
+  test('surfaces a Drupal 422 on the field that caused it', async ({
+    page,
+  }) => {
     await page.goto('/contact');
     // The mock rejects this address with two errors: one on field_email, one on
     // field_internal_note — a field this form does not expose.
@@ -53,11 +55,15 @@ test.describe('contact form', () => {
     await expect(emailError).toBeVisible();
 
     // The field-level message is wired to the input for assistive technology.
-    const describedBy = await page.getByLabel('Email').getAttribute('aria-describedby');
-    expect(describedBy).toContain(await emailError.getAttribute('id') ?? '');
+    const describedBy = await page
+      .getByLabel('Email')
+      .getAttribute('aria-describedby');
+    expect(describedBy).toContain((await emailError.getAttribute('id')) ?? '');
 
     // The unmapped Drupal field became a form-level message, not a phantom input.
-    await expect(page.getByText(/rejected for taken@example\.com/)).toBeVisible();
+    await expect(
+      page.getByText(/rejected for taken@example\.com/),
+    ).toBeVisible();
     await expect(page.getByLabel('Internal note')).toHaveCount(0);
   });
 
@@ -65,7 +71,9 @@ test.describe('contact form', () => {
     await page.goto('/contact');
     await fill(page, 'taken@example.com');
     await page.getByRole('button', { name: 'Send message' }).click();
-    await expect(page.getByText('This address is already subscribed.')).toBeVisible();
+    await expect(
+      page.getByText('This address is already subscribed.'),
+    ).toBeVisible();
 
     // Correcting the address and resubmitting must succeed.
     await page.getByLabel('Email').fill('ada@example.com');

@@ -18,7 +18,8 @@ describe('mapDrupalErrorsToFields', () => {
     const result = mapDrupalErrorsToFields(
       [
         {
-          detail: 'field_email.0.value: This value is not a valid email address.',
+          detail:
+            'field_email.0.value: This value is not a valid email address.',
           source: { pointer: '/data/attributes/field_email' },
         },
       ],
@@ -33,8 +34,14 @@ describe('mapDrupalErrorsToFields', () => {
   it('joins multiple errors on the same field into one message', () => {
     const result = mapDrupalErrorsToFields(
       [
-        { detail: 'Too short.', source: { pointer: '/data/attributes/field_message' } },
-        { detail: 'Contains a blocked word.', source: { pointer: '/data/attributes/field_message' } },
+        {
+          detail: 'Too short.',
+          source: { pointer: '/data/attributes/field_message' },
+        },
+        {
+          detail: 'Contains a blocked word.',
+          source: { pointer: '/data/attributes/field_message' },
+        },
       ],
       FIELD_MAP,
     );
@@ -103,7 +110,12 @@ describe('parseDrupalErrorBody', () => {
   it('extracts the errors array from a JSON:API error document', () => {
     const errors = parseDrupalErrorBody(
       JSON.stringify({
-        errors: [{ detail: 'Nope.', source: { pointer: '/data/attributes/field_email' } }],
+        errors: [
+          {
+            detail: 'Nope.',
+            source: { pointer: '/data/attributes/field_email' },
+          },
+        ],
       }),
     );
 

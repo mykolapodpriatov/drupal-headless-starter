@@ -10,10 +10,11 @@ import { z } from 'zod';
  * Primitives
  * ----------------------------------------------------------------------- */
 
-export const isoDateSchema = z.string().refine(
-  (v) => !Number.isNaN(Date.parse(v)),
-  { message: 'Expected ISO-8601 datetime string' },
-);
+export const isoDateSchema = z
+  .string()
+  .refine((v) => !Number.isNaN(Date.parse(v)), {
+    message: 'Expected ISO-8601 datetime string',
+  });
 
 export const drupalIdSchema = z.string().uuid();
 

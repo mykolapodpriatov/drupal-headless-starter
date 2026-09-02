@@ -35,7 +35,9 @@ export const WithDigest: Story = {
   args: {
     reset: () => undefined,
     error: Object.assign(
-      new Error('Drupal returned 500 for http://drupal.internal/jsonapi/articles'),
+      new Error(
+        'Drupal returned 500 for http://drupal.internal/jsonapi/articles',
+      ),
       { digest: '3f7a1c9e' },
     ),
   },

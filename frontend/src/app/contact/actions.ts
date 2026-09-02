@@ -25,8 +25,7 @@ import { z } from 'zod';
  * which loses every per-field message Drupal took the trouble to send.
  */
 export type ContactResult =
-  | { ok: true }
-  | { ok: false; fieldErrors: Record<string, string> };
+  { ok: true } | { ok: false; fieldErrors: Record<string, string> };
 
 /** JSON:API returns the created resource; we only care that it parsed. */
 const createdResponse = z.object({

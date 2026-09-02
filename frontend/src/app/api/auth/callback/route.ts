@@ -31,7 +31,8 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   const drupalUrl = process.env.NEXT_PUBLIC_DRUPAL_BASE_URL;
   const clientId = process.env.DRUPAL_CLIENT_ID;
   const clientSecret = process.env.DRUPAL_CLIENT_SECRET;
-  const frontendUrl = process.env.NEXT_PUBLIC_FRONTEND_URL ?? new URL(req.url).origin;
+  const frontendUrl =
+    process.env.NEXT_PUBLIC_FRONTEND_URL ?? new URL(req.url).origin;
 
   if (!drupalUrl || !clientId) {
     return bad('OAuth not configured.', 500);
@@ -43,7 +44,9 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   const error = searchParams.get('error');
 
   if (error) {
-    return bad(`Drupal returned ${error}: ${searchParams.get('error_description') ?? ''}`);
+    return bad(
+      `Drupal returned ${error}: ${searchParams.get('error_description') ?? ''}`,
+    );
   }
   if (!code || !state) {
     return bad('Missing code or state.');

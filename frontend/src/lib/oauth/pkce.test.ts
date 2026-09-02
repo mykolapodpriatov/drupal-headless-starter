@@ -1,10 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  createPkcePair,
-  deriveChallenge,
-  generatePkceVerifier,
-} from './pkce';
+import { createPkcePair, deriveChallenge, generatePkceVerifier } from './pkce';
 
 const BASE64URL = /^[A-Za-z0-9_-]+$/;
 

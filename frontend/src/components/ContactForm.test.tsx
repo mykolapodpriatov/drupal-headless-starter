@@ -71,9 +71,7 @@ describe('<ContactForm />', () => {
     await fillValidForm(user);
     await user.click(screen.getByRole('button', { name: /send message/i }));
 
-    expect(await screen.findByRole('status')).toHaveTextContent(
-      /on its way/i,
-    );
+    expect(await screen.findByRole('status')).toHaveTextContent(/on its way/i);
   });
 
   it('attaches a server-side field error to the field that caused it', async () => {
@@ -106,9 +104,7 @@ describe('<ContactForm />', () => {
     await fillValidForm(user);
     await user.click(screen.getByRole('button', { name: /send message/i }));
 
-    expect(
-      await screen.findByText(/maintenance mode/i),
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/maintenance mode/i)).toBeInTheDocument();
   });
 
   it('keeps the form on screen when the server rejects it', async () => {

@@ -26,9 +26,9 @@ export async function generateStaticParams(): Promise<Array<{ slug: string }>> {
   return getArticleSlugs();
 }
 
-export async function generateMetadata(
-  { params }: ArticlePageProps,
-): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: ArticlePageProps): Promise<Metadata> {
   const { slug } = await params;
   const { isEnabled } = await draftMode();
   const article = await getArticleBySlug(slug, { draft: isEnabled });
@@ -45,9 +45,7 @@ export async function generateMetadata(
   };
 }
 
-export default async function ArticlePage(
-  { params }: ArticlePageProps,
-) {
+export default async function ArticlePage({ params }: ArticlePageProps) {
   const { slug } = await params;
   const { isEnabled: isDraft } = await draftMode();
 

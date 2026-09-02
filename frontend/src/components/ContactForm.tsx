@@ -18,7 +18,9 @@ interface ContactFormProps {
    * Injected so the form can be rendered in Storybook and unit tests without a
    * server. In the app this is the `submitContact` Server Action.
    */
-  action: (input: ContactInput) => Promise<
+  action: (
+    input: ContactInput,
+  ) => Promise<
     { ok: true } | { ok: false; fieldErrors: Record<string, string> }
   >;
 }
@@ -38,7 +40,13 @@ export function ContactForm({ action }: ContactFormProps) {
     formState: { errors },
   } = useForm<ContactInput>({
     resolver: zodResolver(contactSchema),
-    defaultValues: { name: '', email: '', subject: '', message: '', company: '' },
+    defaultValues: {
+      name: '',
+      email: '',
+      subject: '',
+      message: '',
+      company: '',
+    },
   });
 
   const onSubmit = handleSubmit((values) => {

@@ -15,6 +15,9 @@ on:
 permissions:
   contents: read
 
+# Split into named jobs on purpose: a single linear job reports one red X and
+# tells you nothing, while these show at a glance whether a PR broke style,
+# behaviour, the build or the integration.
 env:
   # Build-time fallbacks so `next build` does not bail when env is unset.
   DRUPAL_BASE_URL: http://localhost
@@ -26,91 +29,102 @@ env:
   DRUPAL_REVALIDATE_SECRET: ci
 
 jobs:
-  build:
-    name: typecheck + lint + build
+  quality:
+    name: Quality
     runs-on: ubuntu-22.04
-
     defaults:
       run:
         working-directory: frontend
-
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v4
         with:
           version: 10.33.2
           run_install: false
-
-      - name: Set up Node 24
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: 'pnpm'
           cache-dependency-path: frontend/pnpm-lock.yaml
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: TypeScript - tsc --noEmit
+      - run: pnpm install --frozen-lockfile
+      - name: Formatting (Prettier)
+        run: pnpm format:check
+      - name: Types (tsc --noEmit)
         run: pnpm typecheck
-
-      - name: ESLint
+      - name: Lint (ESLint)
         run: pnpm lint
 
-      - name: Unit tests (Vitest)
-        run: pnpm test
-
-      - name: Next.js build
-        run: pnpm build
-
-      - name: Upload build artefacts
-        if: success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: next-build
-          path: frontend/.next
-          retention-days: 3
-          if-no-files-found: ignore
-
-  e2e:
-    name: Playwright E2E
+  tests:
+    name: Tests
     runs-on: ubuntu-22.04
-
     defaults:
       run:
         working-directory: frontend
-
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v4
         with:
           version: 10.33.2
           run_install: false
-
-      - name: Set up Node 24
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: 'pnpm'
           cache-dependency-path: frontend/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - name: Unit + component tests (Vitest, incl. axe)
+        run: pnpm test
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+  build:
+    name: Build
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.2
+          run_install: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'pnpm'
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - name: Production build (Next.js)
+        run: pnpm build
+      - name: Storybook build
+        run: pnpm build-storybook --quiet
 
+  e2e:
+    name: E2E
+    runs-on: ubuntu-22.04
+    needs: build
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.2
+          run_install: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'pnpm'
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
       # Chromium only: the suite asserts behaviour, not rendering, so the other
       # engines would triple the runtime for no additional signal.
       - name: Install Playwright browser
         run: pnpm exec playwright install --with-deps chromium
-
       # Playwright's webServer starts the mock Drupal backend and a production
       # `next build && next start` against it — env lives in playwright.config.ts.
-      - name: Run Playwright
+      - name: Playwright
         run: pnpm e2e
-
       - name: Upload Playwright report
         if: failure()
         uses: actions/upload-artifact@v4

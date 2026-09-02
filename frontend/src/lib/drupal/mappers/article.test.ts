@@ -75,8 +75,9 @@ describe('mapArticle', () => {
   });
 
   it('returns image: null when the article has no image relationship', () => {
-    expect(mapArticle(resource(), [file('/sites/default/files/a.jpg')]).image).
-      toBeNull();
+    expect(
+      mapArticle(resource(), [file('/sites/default/files/a.jpg')]).image,
+    ).toBeNull();
   });
 
   it('returns image: null when the referenced file is not in `included`', () => {

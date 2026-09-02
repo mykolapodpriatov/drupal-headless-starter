@@ -48,7 +48,7 @@ export function resolveArticleImage(
   return {
     url,
     alt: '', // alt lives in the field's relationship meta — fetched separately
-             // in a richer client; this starter keeps it simple.
+    // in a richer client; this starter keeps it simple.
     width: null,
     height: null,
   };

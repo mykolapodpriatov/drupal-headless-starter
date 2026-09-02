@@ -1,7 +1,25 @@
 # Drupal Headless Starter
 
-[![CI - Drupal backend](https://github.com/mykolapodpriatov/drupal-headless-starter/actions/workflows/ci-drupal.yml/badge.svg)](https://github.com/mykolapodpriatov/drupal-headless-starter/actions/workflows/ci-drupal.yml)
 [![CI - Frontend](https://github.com/mykolapodpriatov/drupal-headless-starter/actions/workflows/ci-frontend.yml/badge.svg)](https://github.com/mykolapodpriatov/drupal-headless-starter/actions/workflows/ci-frontend.yml)
+[![CI - Drupal backend](https://github.com/mykolapodpriatov/drupal-headless-starter/actions/workflows/ci-drupal.yml/badge.svg)](https://github.com/mykolapodpriatov/drupal-headless-starter/actions/workflows/ci-drupal.yml)
+[![Storybook](https://github.com/mykolapodpriatov/drupal-headless-starter/actions/workflows/deploy-pages.yml/badge.svg)](https://mykolapodpriatov.github.io/drupal-headless-starter/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
+## Demos
+
+| | What it shows | Why there |
+|---|---|---|
+| **[Component demo →](https://mykolapodpriatov.github.io/drupal-headless-starter/)** | Storybook: every component in every state, on mocked Drupal data — including states you cannot reach in a running app (the draft-preview banner, a Drupal 422 landing on a field, markup the sanitiser strips) | GitHub Pages serves static files |
+| **Full app** — [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fmykolapodpriatov%2Fdrupal-headless-starter&project-name=drupal-headless-starter&root-directory=frontend) | ISR, draft mode, the revalidation webhook, the contact form's Server Action, live Drupal integration | needs a Node runtime |
+
+**Why the Pages demo is Storybook and not a static export of the app.** It is
+not a limitation worked around — it is the honest answer. `output: export`
+[does not support Server Actions](https://nextjs.org/docs/app/building-your-application/deploying/static-exports#unsupported-features),
+and preview mode, the revalidation webhook and the OAuth callback are all route
+handlers. A static export would have to drop the contact form, preview and ISR:
+three of the four things this starter exists to demonstrate. A demo that
+misrepresents the project is worse than no demo, so the app goes where it can
+actually run.
 
 Production-ready starter for a decoupled Drupal 11 + Next.js 15 stack. Drupal is
 the editorial backend exposing both JSON:API and GraphQL; Next.js (App Router)
