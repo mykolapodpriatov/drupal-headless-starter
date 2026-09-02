@@ -6,10 +6,9 @@ import 'server-only';
 import { z } from 'zod';
 
 import { drupalFetch } from '@/lib/drupal/client';
+import { mapArticle, mapArticles } from '@/lib/drupal/mappers/article';
 import {
   type Article,
-  type FileResource,
-  type MediaImage,
   articleSchema,
   fileResourceSchema,
   jsonApiCollectionSchema,
@@ -29,8 +28,6 @@ const ARTICLE_FIELDS = [
 
 const FILE_FIELDS = ['uri', 'filemime', 'filesize'] as const;
 
-const PUBLIC_DRUPAL_URL = process.env.NEXT_PUBLIC_DRUPAL_BASE_URL ?? '';
-
 const articleCollectionResponse = jsonApiCollectionSchema(articleSchema).extend({
   included: z.array(fileResourceSchema).optional(),
 });
@@ -38,50 +35,6 @@ const articleCollectionResponse = jsonApiCollectionSchema(articleSchema).extend(
 const articleSingleResponse = jsonApiSingleSchema(articleSchema).extend({
   included: z.array(fileResourceSchema).optional(),
 });
-
-/** ----------------------------------------------------------------------
- * Internal helpers
- * ----------------------------------------------------------------------- */
-
-function resolveImageFromIncluded(
-  resource: z.infer<typeof articleSchema>,
-  included: FileResource[] | undefined,
-): MediaImage | null {
-  const ref = resource.relationships?.image?.data;
-  if (!ref || !included) return null;
-  const file = included.find((f) => f.id === ref.id);
-  if (!file) return null;
-
-  // jsonapi_extras gives us a relative URL; canonicalize against the public
-  // Drupal base URL so next/image can load it.
-  const url = file.attributes.uri.url.startsWith('http')
-    ? file.attributes.uri.url
-    : new URL(file.attributes.uri.url, PUBLIC_DRUPAL_URL || 'http://localhost').toString();
-
-  return {
-    url,
-    alt: '', // alt comes from the field meta — fetched separately in a richer
-             // client; this starter keeps it simple.
-    width: null,
-    height: null,
-  };
-}
-
-function flattenArticle(
-  resource: z.infer<typeof articleSchema>,
-  included: FileResource[] | undefined,
-): Article {
-  return {
-    id: resource.id,
-    title: resource.attributes.title,
-    slug: resource.attributes.slug ?? `/node/${resource.id}`,
-    createdAt: resource.attributes.createdAt,
-    updatedAt: resource.attributes.updatedAt,
-    published: resource.attributes.published,
-    body: resource.attributes.body,
-    image: resolveImageFromIncluded(resource, included),
-  };
-}
 
 /** ----------------------------------------------------------------------
  * Public queries
@@ -136,7 +89,7 @@ export async function getArticles(
       },
     });
 
-    return response.data.map((r) => flattenArticle(r, response.included));
+    return mapArticles(response.data, response.included);
   } catch (error) {
     if (isBackendUnreachable(error)) {
       console.warn(
@@ -180,7 +133,7 @@ export async function getArticleBySlug(
 
   const node = response.data[0];
   if (!node) return null;
-  return flattenArticle(node, response.included);
+  return mapArticle(node, response.included);
 }
 
 export async function getArticleById(
@@ -203,7 +156,7 @@ export async function getArticleById(
     },
   });
 
-  return flattenArticle(response.data, response.included);
+  return mapArticle(response.data, response.included);
 }
 
 /** Return just `id` + `slug` — used by generateStaticParams. */
