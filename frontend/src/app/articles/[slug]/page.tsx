@@ -31,7 +31,7 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   const { slug } = await params;
   const { isEnabled } = await draftMode();
-  const article = await getArticleBySlug(`/articles/${slug}`, { draft: isEnabled });
+  const article = await getArticleBySlug(slug, { draft: isEnabled });
   if (!article) {
     return { title: 'Not found' };
   }
@@ -51,7 +51,7 @@ export default async function ArticlePage(
   const { slug } = await params;
   const { isEnabled: isDraft } = await draftMode();
 
-  const article = await getArticleBySlug(`/articles/${slug}`, { draft: isDraft });
+  const article = await getArticleBySlug(slug, { draft: isDraft });
   if (!article) {
     notFound();
   }

@@ -73,3 +73,49 @@ jobs:
           path: frontend/.next
           retention-days: 3
           if-no-files-found: ignore
+
+  e2e:
+    name: Playwright E2E
+    runs-on: ubuntu-22.04
+
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.2
+          run_install: false
+
+      - name: Set up Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'pnpm'
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Chromium only: the suite asserts behaviour, not rendering, so the other
+      # engines would triple the runtime for no additional signal.
+      - name: Install Playwright browser
+        run: pnpm exec playwright install --with-deps chromium
+
+      # Playwright's webServer starts the mock Drupal backend and a production
+      # `next build && next start` against it — env lives in playwright.config.ts.
+      - name: Run Playwright
+        run: pnpm e2e
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: frontend/playwright-report
+          retention-days: 7
+          if-no-files-found: ignore
