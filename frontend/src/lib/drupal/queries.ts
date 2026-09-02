@@ -5,7 +5,7 @@ import 'server-only';
 
 import { z } from 'zod';
 
-import { drupalFetch } from '@/lib/drupal/client';
+import { drupalFetch, isOAuthError } from '@/lib/drupal/client';
 import { mapArticle, mapArticles } from '@/lib/drupal/mappers/article';
 import {
   type Article,
@@ -48,17 +48,26 @@ export interface GetArticlesOptions {
 }
 
 /**
- * Whether an error means the Drupal backend could not be reached at all.
+ * Whether an error means there is no usable Drupal backend behind the
+ * configured URL — as opposed to a backend that answered and said no.
  *
- * `fetch()` throws a `TypeError` ("fetch failed", e.g. ECONNREFUSED) when the
- * host is unreachable — which is normal when the frontend is built without a
- * live backend (CI, a standalone `next build`). API and schema errors are
- * `DrupalApiError` / `DrupalValidationError` and must still surface, so this
- * only matches transport-level failures.
+ * Two shapes count:
+ *
+ *   - `TypeError` ("fetch failed", e.g. ECONNREFUSED) — nothing is listening;
+ *   - `OAuthError` — something answered, but the OAuth token endpoint is not
+ *     there. That is what a `next build` against a placeholder URL looks like
+ *     when the port happens to be occupied by an unrelated server, which is
+ *     common on a dev machine (Docker, another framework) and would otherwise
+ *     fail the build with a confusing 404.
+ *
+ * `DrupalApiError` and `DrupalValidationError` deliberately do NOT count: a
+ * backend that replied with a bad status or a drifted schema is a real problem
+ * and must surface rather than silently render an empty page.
  */
-function isBackendUnreachable(error: unknown): boolean {
+function isBackendUnavailable(error: unknown): boolean {
   return (
     error instanceof TypeError ||
+    isOAuthError(error) ||
     (error instanceof Error && error.message.includes('fetch failed'))
   );
 }
@@ -91,9 +100,9 @@ export async function getArticles(
 
     return mapArticles(response.data, response.included);
   } catch (error) {
-    if (isBackendUnreachable(error)) {
+    if (isBackendUnavailable(error)) {
       console.warn(
-        '[drupal] Backend unreachable while listing articles; returning [] (ISR will refill).',
+        '[drupal] Backend unavailable while listing articles; returning [] (ISR will refill).',
       );
       return [];
     }
@@ -179,11 +188,11 @@ export async function getArticleSlugs(): Promise<Array<{ slug: string }>> {
       .filter((s): s is string => Boolean(s))
       .map((s) => ({ slug: s.replace(/^\/articles\//, '') }));
   } catch (error) {
-    if (isBackendUnreachable(error)) {
+    if (isBackendUnavailable(error)) {
       // No live backend at build time: pre-render nothing and let
       // dynamicParams + ISR generate each article page on first request.
       console.warn(
-        '[drupal] Backend unreachable while collecting slugs; skipping static pre-render.',
+        '[drupal] Backend unavailable while collecting slugs; skipping static pre-render.',
       );
       return [];
     }

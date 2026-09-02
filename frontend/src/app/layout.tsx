@@ -39,6 +39,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
             </Link>
             <nav className="flex gap-6 text-sm">
               <Link href="/articles">Articles</Link>
+              <Link href="/contact">Contact</Link>
               <a
                 href={process.env.NEXT_PUBLIC_DRUPAL_BASE_URL ?? '#'}
                 target="_blank"

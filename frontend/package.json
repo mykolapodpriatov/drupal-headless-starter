@@ -12,9 +12,11 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.9.1",
     "next": "^15.1.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-hook-form": "^7.87.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {
