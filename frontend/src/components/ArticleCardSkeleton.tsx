@@ -10,7 +10,7 @@ export function ArticleCardSkeleton() {
   return (
     <div
       aria-hidden
-      className="animate-pulse overflow-hidden rounded-lg border border-black/10"
+      className="animate-pulse overflow-hidden rounded-lg border border-[color:var(--color-border)]"
     >
       <div className="aspect-[16/9] bg-black/5" />
       <div className="space-y-2 p-4">

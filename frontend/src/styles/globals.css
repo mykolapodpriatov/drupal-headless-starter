@@ -8,6 +8,8 @@
   --color-paper: oklch(0.99 0.005 90);
   --color-muted: oklch(0.55 0.02 240);
   --color-accent: oklch(0.62 0.18 250);
+  --color-surface: oklch(1 0 0 / 0.7);
+  --color-border: oklch(0.18 0.02 240 / 0.08);
 }
 
 /* Light is the default. Dark follows the OS unless an explicit data-theme
@@ -18,6 +20,10 @@
   color-scheme: light;
 }
 
+/* The dark palette is written twice on purpose: once for visitors whose OS asks
+   for it, once for an explicit override. CSS cannot share one declaration block
+   between a media query and a plain selector, and a preprocessor would be a
+   heavier dependency than five duplicated lines. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
     color-scheme: dark;
@@ -25,6 +31,8 @@
     --color-paper: oklch(0.19 0.015 250);
     --color-muted: oklch(0.68 0.02 245);
     --color-accent: oklch(0.72 0.15 250);
+    --color-surface: oklch(0.24 0.015 250 / 0.7);
+    --color-border: oklch(0.94 0.01 240 / 0.12);
   }
 }
 
@@ -34,6 +42,8 @@
   --color-paper: oklch(0.19 0.015 250);
   --color-muted: oklch(0.68 0.02 245);
   --color-accent: oklch(0.72 0.15 250);
+  --color-surface: oklch(0.24 0.015 250 / 0.7);
+  --color-border: oklch(0.94 0.01 240 / 0.12);
 }
 
 html,
@@ -54,7 +64,43 @@ a:hover {
   text-decoration: underline;
 }
 
-/* Constrain prose lines for readability. */
+/* Typography for Drupal's processed body HTML. That markup comes out of a
+   filter format, so it carries no classes — it has to be styled by element. */
 .prose-body :is(p, ul, ol, blockquote) {
   max-width: 65ch;
+}
+
+.prose-body :is(p, ul, ol, blockquote) + :is(p, ul, ol, blockquote) {
+  margin-top: 1rem;
+}
+
+.prose-body h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.3;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+}
+
+.prose-body h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.prose-body ul {
+  list-style: disc;
+  padding-left: 1.5rem;
+}
+
+.prose-body ol {
+  list-style: decimal;
+  padding-left: 1.5rem;
+}
+
+.prose-body blockquote {
+  border-left: 3px solid var(--color-border);
+  padding-left: 1rem;
+  color: var(--color-muted);
 }

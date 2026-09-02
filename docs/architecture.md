@@ -97,3 +97,49 @@ Drupal config, so it stays in sync with the model.
 - **Translations are out of scope.** The article type is single-language;
   enabling `content_translation` + Drupal's language negotiation is left as
   an exercise.
+
+## Data flow: JSON:API to React
+
+The single most important boundary in this repo. Drupal's transport shape stops
+at the mapper; everything above it sees a flat domain model.
+
+```
+  Drupal JSON:API
+        │  { data: [{ attributes, relationships }], included: [...] }
+        ▼
+  lib/drupal/client.ts          transport
+        │  auth · query string · 401 retry · zod validation of the envelope
+        ▼
+  lib/drupal/mappers/article.ts translation      ← pure, testable, no server-only
+        │  resolve `included` pointers · canonicalise file URLs · fallbacks
+        ▼
+  Article (domain model)
+        │  { id, title, slug, createdAt, updatedAt, published, body, image }
+        ▼
+  React components · Storybook stories · component tests
+```
+
+Nothing above the mapper may reference `attributes`, `relationships` or
+`included` — there is a test asserting the domain model carries none of them.
+
+The write path mirrors it: a Drupal 422 comes back as a JSON:API error document
+keyed by machine names, and `lib/drupal/errors.ts` translates those into form
+fields through an explicit map before react-hook-form ever sees them.
+
+Rationale and alternatives: [ADR 001](decisions/001-domain-model-mapping.md).
+
+## Where the tests sit
+
+```
+  unit        lib/**            query builder · mappers · errors · OAuth · sanitiser
+  component   components/**     jsdom + Testing Library + axe-core
+  e2e         e2e/**            production build ⇄ mock Drupal over real HTTP
+```
+
+Rationale: [ADR 003](decisions/003-testing-strategy.md).
+
+## Decision records
+
+- [ADR 001 — Drupal entities are mapped into frontend domain models](decisions/001-domain-model-mapping.md)
+- [ADR 002 — Caching: ISR plus tag invalidation](decisions/002-caching-and-invalidation.md)
+- [ADR 003 — Testing strategy: three layers, no live Drupal in CI](decisions/003-testing-strategy.md)

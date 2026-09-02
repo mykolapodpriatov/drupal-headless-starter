@@ -38,7 +38,7 @@ export default async function HomePage() {
             href="https://www.drupal.org/project/jsonapi_extras"
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center rounded-md border border-black/10 px-4 py-2"
+            className="inline-flex items-center rounded-md border border-[color:var(--color-border)] px-4 py-2"
           >
             JSON:API extras docs
           </a>
