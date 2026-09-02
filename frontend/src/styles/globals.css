@@ -9,8 +9,30 @@
   --color-accent: oklch(0.62 0.18 250);
 }
 
+/* Light is the default. Dark follows the OS unless an explicit data-theme
+   overrides it — the explicit form is what the Storybook toolbar toggles and
+   what lets a future in-app theme switch work without touching components.
+   Colours are declared once here so no component hard-codes a hex value. */
 :root {
   color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --color-ink: oklch(0.94 0.01 240);
+    --color-paper: oklch(0.19 0.015 250);
+    --color-muted: oklch(0.68 0.02 245);
+    --color-accent: oklch(0.72 0.15 250);
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --color-ink: oklch(0.94 0.01 240);
+  --color-paper: oklch(0.19 0.015 250);
+  --color-muted: oklch(0.68 0.02 245);
+  --color-accent: oklch(0.72 0.15 250);
 }
 
 html,
