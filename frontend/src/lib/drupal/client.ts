@@ -76,11 +76,18 @@ export function buildJsonApiQuery(q: JsonApiQuery): string {
 export class DrupalApiError extends Error {
   public readonly status: number;
   public readonly url: string;
-  constructor(message: string, status: number, url: string) {
+  /**
+   * Raw response body. Kept verbatim (the `message` truncates it) because a
+   * 422 carries the JSON:API error document that drives per-field form errors
+   * — see lib/drupal/errors.ts.
+   */
+  public readonly body: string;
+  constructor(message: string, status: number, url: string, body = '') {
     super(message);
     this.name = 'DrupalApiError';
     this.status = status;
     this.url = url;
+    this.body = body;
   }
 }
 
@@ -174,6 +181,7 @@ export async function drupalFetch<S extends ZodTypeAny>(
       `Drupal returned ${res.status} ${res.statusText} for ${url}: ${text.slice(0, 200)}`,
       res.status,
       url,
+      text,
     );
   }
 
