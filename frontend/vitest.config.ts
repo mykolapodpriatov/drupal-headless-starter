@@ -1,5 +1,6 @@
 import { fileURLToPath } from 'node:url';
 
+import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vitest/config';
 
 // Two test projects share one config:
@@ -47,6 +48,9 @@ export default defineConfig({
         },
       },
       {
+        // Next compiles JSX itself; Vitest does not, so the dom project needs
+        // an explicit React transform.
+        plugins: [react()],
         resolve,
         test: {
           name: 'dom',
