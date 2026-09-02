@@ -17,11 +17,13 @@ function post(
   url: string,
   init?: { headers?: HeadersInit; body?: string },
 ): NextRequest {
-  return new NextRequest(url, {
-    method: 'POST',
-    headers: init?.headers,
-    body: init?.body,
-  });
+  // NextRequest declares its own RequestInit; borrow it so
+  // `exactOptionalPropertyTypes` lines up with the constructor signature.
+  type NextRequestInit = NonNullable<ConstructorParameters<typeof NextRequest>[1]>;
+  const requestInit: NextRequestInit = { method: 'POST' };
+  if (init?.headers !== undefined) requestInit.headers = init.headers;
+  if (init?.body !== undefined) requestInit.body = init.body;
+  return new NextRequest(url, requestInit);
 }
 
 describe('POST /api/revalidate', () => {

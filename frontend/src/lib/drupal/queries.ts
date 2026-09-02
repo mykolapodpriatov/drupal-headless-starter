@@ -120,7 +120,7 @@ export async function getArticles(
     const response = await drupalFetch({
       resource: 'articles',
       schema: articleCollectionResponse,
-      draft: opts.draft,
+      draft: opts.draft ?? false,
       next: opts.draft
         ? { revalidate: 0 }
         : { revalidate: 60, tags: ['articles:list'] },
@@ -163,7 +163,7 @@ export async function getArticleBySlug(
   const response = await drupalFetch({
     resource: 'articles',
     schema: articleCollectionResponse,
-    draft: opts.draft,
+    draft: opts.draft ?? false,
     next: opts.draft
       ? { revalidate: 0 }
       : { revalidate: 60, tags: [`articles:slug:${aliasPath}`] },
@@ -190,7 +190,7 @@ export async function getArticleById(
   const response = await drupalFetch({
     resource: `articles/${uuid}`,
     schema: articleSingleResponse,
-    draft: opts.draft,
+    draft: opts.draft ?? false,
     next: opts.draft
       ? { revalidate: 0 }
       : { revalidate: 60, tags: [`articles:id:${uuid}`] },
