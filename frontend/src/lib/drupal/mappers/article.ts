@@ -19,6 +19,20 @@ import type {
 const PUBLIC_DRUPAL_URL = process.env.NEXT_PUBLIC_DRUPAL_BASE_URL ?? '';
 
 /**
+ * Canonicalise a Drupal file URL against the public origin.
+ *
+ * Both transports (JSON:API's `uri.url`, GraphQL Compose's `image.url`) can
+ * hand back a site-relative path; `next/image` needs an absolute one to load
+ * it from the browser. Shared here so the two mappers agree on the rule
+ * rather than reimplementing it.
+ */
+export function canonicalizeFileUrl(url: string): string {
+  return url.startsWith('http')
+    ? url
+    : new URL(url, PUBLIC_DRUPAL_URL || 'http://localhost').toString();
+}
+
+/**
  * Resolve the article's image from the JSON:API `included` side-load.
  *
  * JSON:API delivers relationships as `{ data: { id, type } }` pointers and puts
@@ -36,17 +50,8 @@ export function resolveArticleImage(
   const file = included.find((f) => f.id === ref.id);
   if (!file) return null;
 
-  // jsonapi_extras hands back a site-relative URL; canonicalise it against the
-  // public Drupal origin so next/image can load it from the browser.
-  const url = file.attributes.uri.url.startsWith('http')
-    ? file.attributes.uri.url
-    : new URL(
-        file.attributes.uri.url,
-        PUBLIC_DRUPAL_URL || 'http://localhost',
-      ).toString();
-
   return {
-    url,
+    url: canonicalizeFileUrl(file.attributes.uri.url),
     alt: '', // alt lives in the field's relationship meta — fetched separately
     // in a richer client; this starter keeps it simple.
     width: null,

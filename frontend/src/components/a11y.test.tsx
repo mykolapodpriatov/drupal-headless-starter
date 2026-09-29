@@ -12,6 +12,7 @@ import { ArticleCard } from '@/components/ArticleCard';
 import { ArticleListSkeleton } from '@/components/ArticleCardSkeleton';
 import { ContactForm } from '@/components/ContactForm';
 import { ErrorState } from '@/components/ErrorState';
+import { LoadMoreLink } from '@/components/LoadMoreLink';
 import {
   articleFixture,
   articleWithImageFixture,
@@ -48,6 +49,12 @@ describe('accessibility', () => {
 
   it('ArticleListSkeleton has no violations', async () => {
     const { container } = render(<ArticleListSkeleton />);
+
+    await expectNoA11yViolations(container);
+  });
+
+  it('LoadMoreLink has no violations', async () => {
+    const { container } = render(<LoadMoreLink nextPage={2} />);
 
     await expectNoA11yViolations(container);
   });

@@ -67,3 +67,16 @@ someone notices.
 
 **`revalidatePath()` instead of tags.** Simpler to fire, but paths and data
 dependencies diverge as soon as one article appears on more than one page.
+
+## Update (2026-09-29): the article list no longer streams
+
+The "Streaming is opted into per page" line above stopped being true for
+`/articles` once its cursor-paged "Load more" control shipped. That control
+has to work with JavaScript disabled, and a `<Suspense>`-streamed boundary is
+the wrong tool for that: React sends the fallback in the initial HTML and
+patches the real content in later via an inline script, so with no script
+engine running, the page is stuck showing the loading skeleton forever,
+control included. `/articles` and `/articles/graphql` (kept consistent with
+it) now await their data directly instead, the same way `/articles/[slug]`
+already did. The per-page tag vocabulary in the Decision section above is
+unaffected; only the streaming half of this ADR changed.

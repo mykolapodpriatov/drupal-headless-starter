@@ -7,7 +7,9 @@ test.describe('article browsing', () => {
     await expect(
       page.getByRole('heading', { level: 1, name: 'Articles' }),
     ).toBeVisible();
-    await expect(page.getByRole('listitem')).toHaveCount(3);
+    // The mock backend publishes 26 articles, so page 1 is a full 24-item
+    // batch. See e2e/articles-paging.spec.ts for the "Load more" flow past this.
+    await expect(page.getByRole('listitem')).toHaveCount(24);
     await expect(
       page.getByRole('heading', { name: 'Decoupling Drupal' }),
     ).toBeVisible();

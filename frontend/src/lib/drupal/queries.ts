@@ -5,12 +5,19 @@ import 'server-only';
 
 import { z } from 'zod';
 
-import { drupalFetch, isOAuthError } from '@/lib/drupal/client';
+import {
+  drupalFetch,
+  extractNextPageLink,
+  isOAuthError,
+} from '@/lib/drupal/client';
+import { drupalGraphQL } from '@/lib/drupal/graphql-client';
 import { mapArticle, mapArticles } from '@/lib/drupal/mappers/article';
+import { mapGraphqlArticles } from '@/lib/drupal/mappers/article-graphql';
 import {
   type Article,
   articleSchema,
   fileResourceSchema,
+  graphqlArticleConnectionSchema,
   jsonApiCollectionSchema,
   jsonApiSingleSchema,
 } from '@/lib/drupal/types';
@@ -105,6 +112,172 @@ export async function getArticles(
     if (isBackendUnavailable(error)) {
       console.warn(
         '[drupal] Backend unavailable while listing articles; returning [] (ISR will refill).',
+      );
+      return [];
+    }
+    throw error;
+  }
+}
+
+/** Articles-listing page size, also the page 1 batch of the `?page=` "Load more" flow below. */
+export const ARTICLES_PAGE_SIZE = 24;
+
+export interface ArticlesListPage {
+  /** Every article from page 1 through the requested page, concatenated. */
+  articles: Article[];
+  /** The `?page=` value this result represents (1-indexed). */
+  page: number;
+  /** Whether Drupal's own `links.next` says there is a further page after this one. */
+  hasNextPage: boolean;
+}
+
+/**
+ * The article listing's "Load more" flow: cursor-based paging via JSON:API's
+ * `links.next`, not client-computed `page[offset]`.
+ *
+ * `getArticles()` above takes `limit`/`offset` and is fine for a fixed batch
+ * (the home page's "latest 6"), but offset math drifts under it: if an
+ * article is published between two page loads, everything after it shifts
+ * by one and the reader either sees a duplicate or skips one. Reaching
+ * page N here instead means walking the cursor Drupal handed back for page
+ * N-1, the same cursor the client would follow whether or not anything was
+ * published in between, because it is not recomputed from a guessed offset.
+ *
+ * The trade-off cursor pagination always has: you cannot jump to page N
+ * without having walked pages 1..N-1 first, so this fetches each of them in
+ * turn. That is not the cost it looks like: every step is independently
+ * cached and tagged (`articles:list:page:<n>`, not one blanket
+ * `articles:list`), so a repeat request for page 3 replays three cache hits,
+ * not three round-trips to Drupal, and publishing an article only evicts the
+ * pages it actually appears on.
+ *
+ * Returns pages 1..N concatenated rather than page N alone, which is what
+ * makes the plain `<a href="?page=2">` fallback (see LoadMoreLink) behave
+ * like "load more" instead of "jump to the next page" when JavaScript is
+ * off: following the link without JS still shows everything the reader had
+ * already seen, plus more.
+ */
+export async function getArticlesListPage(
+  opts: { page?: number; pageSize?: number; draft?: boolean } = {},
+): Promise<ArticlesListPage> {
+  const page = Math.max(1, Math.trunc(opts.page ?? 1));
+  const pageSize = opts.pageSize ?? ARTICLES_PAGE_SIZE;
+  const draft = opts.draft ?? false;
+
+  const articles: Article[] = [];
+  let cursor: string | null = null;
+  let hasNextPage = false;
+
+  try {
+    for (let current = 1; current <= page; current += 1) {
+      const response = await drupalFetch({
+        ...(cursor
+          ? { url: cursor }
+          : {
+              resource: 'articles',
+              query: {
+                include: ['image'],
+                fields: {
+                  'node--article': [...ARTICLE_FIELDS],
+                  'file--file': [...FILE_FIELDS],
+                },
+                sort: ['-createdAt'],
+                page: { limit: pageSize },
+                filter: draft ? {} : { published: true },
+              },
+            }),
+        schema: articleCollectionResponse,
+        draft,
+        next: draft
+          ? { revalidate: 0 }
+          : { revalidate: 60, tags: [`articles:list:page:${current}`] },
+      });
+
+      articles.push(...mapArticles(response.data, response.included));
+      cursor = extractNextPageLink(response.links);
+      hasNextPage = cursor !== null;
+
+      // Requested a page beyond what Drupal has: stop where the data ends
+      // rather than throwing; the "Load more" control just won't render.
+      if (!cursor && current < page) break;
+    }
+  } catch (error) {
+    if (isBackendUnavailable(error)) {
+      console.warn(
+        '[drupal] Backend unavailable while listing articles; returning [] (ISR will refill).',
+      );
+      return { articles: [], page, hasNextPage: false };
+    }
+    throw error;
+  }
+
+  return { articles, page, hasNextPage };
+}
+
+const ARTICLE_LISTING_GRAPHQL_QUERY = /* GraphQL */ `
+  query ArticleListing($first: Int!) {
+    nodeArticles(first: $first, sort: { field: CREATED, direction: DESC }) {
+      nodes {
+        id
+        title
+        path
+        status
+        created {
+          time
+        }
+        changed {
+          time
+        }
+        body {
+          value
+          format
+          processed
+          summary
+        }
+        image {
+          url
+          alt
+          width
+          height
+        }
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+    }
+  }
+`;
+
+/**
+ * The same article listing as `getArticles()`, fetched through GraphQL
+ * Compose instead of JSON:API, so the trade-off is demonstrated rather than
+ * asserted in the README. One request asks for exactly the fields the list
+ * needs, including the image, with no `?include=` side-load dance; the cost
+ * is the schema/build step JSON:API does not need. Both queries return the
+ * identical `Article[]` through the identical mapper contract (ADR 001), so
+ * nothing above this function can tell which transport produced it.
+ *
+ * See docs/architecture.md#why-both-jsonapi-and-graphql.
+ */
+export async function getArticlesGraphQL(
+  opts: { limit?: number } = {},
+): Promise<Article[]> {
+  const first = opts.limit ?? ARTICLES_PAGE_SIZE;
+
+  try {
+    const response = await drupalGraphQL({
+      query: ARTICLE_LISTING_GRAPHQL_QUERY,
+      variables: { first },
+      schema: graphqlArticleConnectionSchema,
+      next: { revalidate: 60, tags: ['articles:list:graphql'] },
+    });
+
+    return mapGraphqlArticles(response.nodeArticles.nodes);
+  } catch (error) {
+    if (isBackendUnavailable(error)) {
+      console.warn(
+        '[drupal] Backend unavailable while listing articles via GraphQL; returning [] (ISR will refill).',
       );
       return [];
     }

@@ -151,3 +151,54 @@ export const jsonApiSingleSchema = <T extends z.ZodTypeAny>(item: T) =>
     included: z.array(z.unknown()).optional(),
     links: z.record(z.unknown()).optional(),
   });
+
+/** ----------------------------------------------------------------------
+ * GraphQL Compose: same content, different transport.
+ *
+ * `graphql_compose` auto-generates one GraphQL type per content type from
+ * the Drupal field config (`NodeArticle` for the Article bundle here) and
+ * exposes a Relay-style connection query field (`nodeArticles`) alongside
+ * the singular one. This mirrors that shape closely enough to drive the
+ * parallel listing in `getArticlesGraphQL()`. It is exercised against this
+ * repo's own mock server (see `e2e/mock-drupal/server.mjs`), not against a
+ * live introspected schema; ADR 003 covers why there is no live Drupal in
+ * CI.
+ *
+ * The `body` field reuses `articleBodySchema`, the same shape as the
+ * JSON:API side, which is the point: whatever differs is transport, not
+ * domain.
+ * ----------------------------------------------------------------------- */
+
+export const graphqlImageSchema = z.object({
+  url: z.string(),
+  alt: z.string().nullable(),
+  width: z.number().int().positive().nullable(),
+  height: z.number().int().positive().nullable(),
+});
+
+export type GraphQLImage = z.infer<typeof graphqlImageSchema>;
+
+export const graphqlArticleSchema = z.object({
+  id: drupalIdSchema,
+  title: z.string(),
+  /** The node's path alias, or null when it has none (see `mapGraphqlArticle`). */
+  path: z.string().nullable(),
+  /** graphql_compose surfaces publication state as `status`, not `published`. */
+  status: z.boolean(),
+  created: z.object({ time: isoDateSchema }),
+  changed: z.object({ time: isoDateSchema }),
+  body: articleBodySchema.nullable(),
+  image: graphqlImageSchema.nullable(),
+});
+
+export type GraphQLArticle = z.infer<typeof graphqlArticleSchema>;
+
+export const graphqlArticleConnectionSchema = z.object({
+  nodeArticles: z.object({
+    nodes: z.array(graphqlArticleSchema),
+    pageInfo: z.object({
+      hasNextPage: z.boolean(),
+      endCursor: z.string().nullable(),
+    }),
+  }),
+});

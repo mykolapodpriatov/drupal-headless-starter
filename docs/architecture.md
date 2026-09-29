@@ -77,16 +77,32 @@ exists to make those cheap.
   surface within a minute without a redeploy.
 - **`revalidatePath` / `revalidateTag`** hooks fired by a Drupal `entity_update`
   hook for instant invalidation (optional; see `docs/deploy.md`).
+- **Per-page tags on the article listing.** `/articles` pages beyond the first
+  are reached by following JSON:API's `links.next` cursor rather than
+  computing `page[offset]` client-side (offset math drifts if something
+  publishes between two page loads), and each page fetched along the way is
+  cached and tagged independently (`articles:list:page:<n>`). Publishing one
+  article therefore does not evict every page of the listing, only the ones
+  it actually appears on. See `getArticlesListPage()` in
+  `lib/drupal/queries.ts`.
 
 ## Why both JSON:API and GraphQL?
 
-JSON:API is the default — zero configuration, every entity is automatically
+JSON:API is the default: zero configuration, every entity is automatically
 exposed, and `jsonapi_extras` lets editors hide internal field names. It's the
 right call for 90% of fetches.
 
-GraphQL Compose is there for over-fetch-sensitive views — a paginated listing
-that needs three fields out of fifteen. The schema is auto-generated from
-Drupal config, so it stays in sync with the model.
+GraphQL Compose is there for over-fetch-sensitive views, a listing that needs
+three fields out of fifteen, including a relationship (the image) that
+JSON:API can only deliver via a separate `?include=` side-load. The schema is
+auto-generated from Drupal config, so it stays in sync with the model.
+
+This is demonstrated, not just asserted: `/articles` (JSON:API) and
+`/articles/graphql` (GraphQL Compose) render the identical listing, through
+`getArticles()` / `getArticlesGraphQL()` in `lib/drupal/queries.ts`, through
+the identical mapper contract (ADR 001), so the two are directly comparable in
+the network tab. Mutations still go through JSON:API either way; GraphQL
+Compose here is read-only.
 
 ## Trade-offs
 

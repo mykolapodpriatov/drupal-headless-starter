@@ -83,9 +83,15 @@ Screenshots are generated from the running app against the mock backend —
 ```
 
 The frontend never talks to Drupal's database directly. Everything goes through
-JSON:API (default for content fetching) or GraphQL Compose (for over-fetching-
-sensitive views). Auth is OAuth2 — Authorization Code + PKCE for editor preview,
-Client Credentials for the server-to-server fetches that power ISR builds.
+JSON:API (default for content fetching, `lib/drupal/client.ts`) or GraphQL
+Compose (for over-fetching-sensitive views, `lib/drupal/graphql-client.ts`).
+Auth is OAuth2: Authorization Code + PKCE for editor preview, Client
+Credentials for the server-to-server fetches that power ISR builds, shared by
+both transports.
+
+`/articles` and `/articles/graphql` render the same listing through each
+transport, so the trade-off is something you can open the network tab and
+compare rather than take on faith.
 
 ## Key engineering decisions
 
@@ -129,14 +135,28 @@ are layered: queries carry a 60-second floor plus tags
 must never be served a cached copy of what they are editing.
 [ADR 002](docs/decisions/002-caching-and-invalidation.md).
 
-### Streaming is opted into per page, not via `loading.tsx`
+The article listing's "Load more" pages beyond the first get their own tag
+each (`articles:list:page:<n>`), so publishing one article does not evict
+every page a reader may have cached. See
+[`getArticlesListPage()`](frontend/src/lib/drupal/queries.ts) and
+[`docs/deploy.md`](docs/deploy.md#tag-naming-convention).
 
-A segment-level `loading.tsx` wraps every route below it in Suspense — and once
+### No segment-level `loading.tsx`, and the article list does not stream either
+
+A segment-level `loading.tsx` wraps every route below it in Suspense, and once
 a response starts streaming, its status code is already on the wire. That made
 `notFound()` on `/articles/[slug]` return **HTTP 200 with 404 content**:
-invisible in a browser, wrong for crawlers and caches. The article list streams
-via an explicit `<Suspense>` where it helps; the detail route awaits and returns
-a real 404.
+invisible in a browser, wrong for crawlers and caches. The detail route awaits
+its data directly and returns a real 404.
+
+The article listing at `/articles` awaits its data the same way, for a related
+reason: its "Load more" control has to work with JavaScript disabled, and a
+`<Suspense>`-streamed boundary shows its fallback in the initial HTML, then
+patches in the real content later via an inline script. With no JavaScript
+running, that patch never happens and the page is stuck on the loading
+skeleton forever, control included. So this page (and its GraphQL counterpart
+at `/articles/graphql`, kept consistent with it) trades the streaming benefit
+for a response that is complete and correct with or without a script engine.
 
 ### The error UI never prints `error.message`
 
@@ -297,8 +317,6 @@ The shortlist:
 - Pixel-diff visual regression for Storybook, run inside the CI container
 - A nightly integration job against a real DDEV Drupal, off the PR path
 - Generate the zod JSON:API schemas from the Drupal schema instead of by hand
-- Paginated article listing with cursor-based JSON:API paging
-- GraphQL Compose examples alongside the JSON:API ones
 
 ## License
 
