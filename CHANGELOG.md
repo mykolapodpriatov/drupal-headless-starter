@@ -6,6 +6,20 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+- **Cursor-based paging for the article listing**, using JSON:API's
+  `links.next` instead of computing `page[offset]` itself, so the page a
+  reader sees does not drift when something publishes between two page loads.
+  The "Load more" control is a real `<a href="?page=2">`, so it keeps working
+  with JavaScript disabled. Each page fetched along the way is cached and
+  tagged independently (`articles:list:page:<n>`), so publishing one article
+  no longer evicts every page of the listing.
+- **GraphQL Compose article listing** at `/articles/graphql`: the same
+  listing as `/articles`, fetched through `graphql_compose` instead of
+  JSON:API, through the identical mapper contract (ADR 001). Demonstrates the
+  JSON:API vs. GraphQL trade-off from `docs/architecture.md` directly instead
+  of only asserting it in prose.
+
 ## [1.0.0] - 2026-09-02
 
 First release the README can be believed about: every claim below is covered by

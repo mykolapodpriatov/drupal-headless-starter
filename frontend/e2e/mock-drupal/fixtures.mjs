@@ -51,6 +51,28 @@ function article({
   };
 }
 
+/**
+ * Deterministic, valid-UUID ids for the filler articles below: hex digits
+ * only, version/variant nibbles fixed so `drupalIdSchema` (`z.string().uuid()`)
+ * accepts them.
+ */
+function fillerId(n) {
+  return `66666${String(n).padStart(3, '0')}-6666-4666-8666-666666666666`;
+}
+
+// One page's worth (24) plus a few more, so the "Load more" / cursor-paging
+// e2e tests exercise a real second page instead of asserting against a pool
+// too small to ever paginate. The three articles other specs assert on by
+// title/slug stay first so they land on page 1 regardless of page size.
+const FILLER_COUNT = 23;
+const fillerArticles = Array.from({ length: FILLER_COUNT }, (_, i) =>
+  article({
+    id: fillerId(i + 1),
+    title: `Filler article ${i + 1}`,
+    slug: `/articles/filler-${i + 1}`,
+  }),
+);
+
 export const publishedArticles = [
   article({
     id: '22222222-2222-4222-8222-222222222222',
@@ -68,6 +90,7 @@ export const publishedArticles = [
     title: 'Cache invalidation with revalidateTag',
     slug: '/articles/cache-invalidation',
   }),
+  ...fillerArticles,
 ];
 
 /** Only visible through the working-copy revision, i.e. in preview mode. */

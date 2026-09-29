@@ -103,13 +103,18 @@ Queries in `frontend/src/lib/drupal/queries.ts` already attach these tags to
 
 | Tag | What it covers |
 |---|---|
-| `articles:list` | Article listing (`getArticles`) |
+| `articles:list` | Home page's article teaser (`getArticles`) |
+| `articles:list:page:<n>` | Page `<n>` of `/articles`'s cursor-paged listing (`getArticlesListPage`) |
+| `articles:list:graphql` | The GraphQL Compose listing at `/articles/graphql` (`getArticlesGraphQL`) |
 | `articles:slug:/articles/<slug>` | One article by path alias (`getArticleBySlug`) |
 | `articles:id:<uuid>` | One article by node UUID (`getArticleById`) |
 | `articles:slugs` | `generateStaticParams` slug list (`getArticleSlugs`) |
 
-A typical node save should invalidate the list, the slug list, and that
-node's slug + id tags so the listing and the permalink both refresh.
+A typical node save should invalidate `articles:list`, `articles:list:graphql`,
+the slug list, that node's slug + id tags, and every `articles:list:page:<n>`
+tag the reader could currently have cached (in practice: page 1, since most
+publishes land at the top of a `-createdAt` sort) so the listings and the
+permalink all refresh.
 
 Wiring Drupal's `hook_entity_update` / `hook_entity_delete` to POST here is
 left as a follow-up — the webhook is ready to receive it.

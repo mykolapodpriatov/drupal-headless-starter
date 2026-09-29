@@ -106,9 +106,38 @@ export class DrupalValidationError extends Error {
  * Core fetch
  * ----------------------------------------------------------------------- */
 
+/**
+ * Read a JSON:API collection response's `links.next` cursor.
+ *
+ * Drupal encodes it either as a bare string or as `{ href }`; this accepts
+ * both and returns `null` when there is no next page. Callers should pass
+ * the result straight back in as `DrupalFetchOptions.url` on the next
+ * request rather than re-deriving `page[offset]` themselves: offset math
+ * drifts when content is published between page loads, the cursor the
+ * server just handed back does not.
+ */
+export function extractNextPageLink(links: unknown): string | null {
+  if (!links || typeof links !== 'object') return null;
+  const next = (links as Record<string, unknown>).next;
+  if (typeof next === 'string') return next || null;
+  if (next && typeof next === 'object' && 'href' in next) {
+    const href = (next as { href?: unknown }).href;
+    return typeof href === 'string' && href.length > 0 ? href : null;
+  }
+  return null;
+}
+
 export interface DrupalFetchOptions<S extends ZodTypeAny> {
   /** Path under /jsonapi, e.g. 'node/article' or 'articles' (the JSON:API extras alias). */
-  resource: string;
+  resource?: string;
+  /**
+   * A complete, already-built request URL, used verbatim instead of
+   * `resource`/`query`. This is how paginated fetches follow a JSON:API
+   * `links.next` cursor: that URL already encodes the exact next request,
+   * so rebuilding it from `resource` + `query` would just be recomputing
+   * the offset the cursor exists to avoid.
+   */
+  url?: string;
   query?: JsonApiQuery;
   /** Zod schema applied to the parsed JSON. Throws DrupalValidationError on mismatch. */
   schema: S;
@@ -137,10 +166,12 @@ export async function drupalFetch<S extends ZodTypeAny>(
     query.resourceVersion = query.resourceVersion ?? 'rel:working-copy';
   }
   const qs = buildJsonApiQuery(query);
-  const url = new URL(
-    `/jsonapi/${opts.resource}${qs ? `?${qs}` : ''}`,
-    env.DRUPAL_BASE_URL,
-  ).toString();
+  const url =
+    opts.url ??
+    new URL(
+      `/jsonapi/${opts.resource ?? ''}${qs ? `?${qs}` : ''}`,
+      env.DRUPAL_BASE_URL,
+    ).toString();
 
   const headers: Record<string, string> = {
     Accept: 'application/vnd.api+json',

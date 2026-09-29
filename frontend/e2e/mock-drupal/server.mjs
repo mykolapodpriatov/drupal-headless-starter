@@ -33,8 +33,29 @@ async function readBody(req) {
   return Buffer.concat(chunks).toString('utf8');
 }
 
-function collection(data) {
-  return { data, included: files, meta: { count: data.length }, links: {} };
+function collection(data, links = {}) {
+  return { data, included: files, meta: { count: data.length }, links };
+}
+
+/**
+ * Build the `links.next` a real Drupal JSON:API pager would return: the same
+ * request, `page[offset]` advanced by `limit`, omitted once the window
+ * reaches the end of the pool. The frontend follows this verbatim (see
+ * `extractNextPageLink` / `getArticlesListPage`) rather than recomputing an
+ * offset itself, so this is what makes that cursor-following behaviour
+ * testable at all.
+ */
+function nextPageLink(url, poolLength, offset, limit) {
+  const nextOffset = offset + limit;
+  if (nextOffset >= poolLength) return {};
+
+  const next = new URL(url.pathname, url.origin);
+  for (const [key, value] of url.searchParams) {
+    if (key === 'page[offset]') continue;
+    next.searchParams.append(key, value);
+  }
+  next.searchParams.set('page[offset]', String(nextOffset));
+  return { next: { href: next.toString() } };
 }
 
 function handleArticles(url) {
@@ -51,7 +72,80 @@ function handleArticles(url) {
   }
 
   const limit = Number(url.searchParams.get('page[limit]') ?? pool.length);
-  return collection(pool.slice(0, limit));
+  const offset = Number(url.searchParams.get('page[offset]') ?? 0);
+  const page = pool.slice(offset, offset + limit);
+  return collection(page, nextPageLink(url, pool.length, offset, limit));
+}
+
+/** GraphQL Compose article node, shaped the way lib/drupal/types.ts expects. */
+function graphqlArticleNode(a) {
+  const imageRef = a.relationships?.image?.data;
+  const file = imageRef ? files.find((f) => f.id === imageRef.id) : undefined;
+
+  return {
+    id: a.id,
+    title: a.attributes.title,
+    path: a.attributes.slug,
+    status: a.attributes.published,
+    created: { time: a.attributes.createdAt },
+    changed: { time: a.attributes.updatedAt },
+    body: a.attributes.body
+      ? {
+          value: a.attributes.body.value,
+          format: a.attributes.body.format,
+          processed: a.attributes.body.processed,
+          summary: a.attributes.body.summary,
+        }
+      : null,
+    image: file
+      ? {
+          url: file.attributes.uri.url,
+          alt: null,
+          width: null,
+          height: null,
+        }
+      : null,
+  };
+}
+
+function handleGraphQL(rawBody) {
+  let parsed;
+  try {
+    parsed = JSON.parse(rawBody);
+  } catch {
+    return {
+      status: 400,
+      payload: { errors: [{ message: 'Invalid JSON body' }] },
+    };
+  }
+
+  const query = String(parsed?.query ?? '');
+  const first = Number(parsed?.variables?.first ?? publishedArticles.length);
+
+  if (!query.includes('nodeArticles')) {
+    return {
+      status: 200,
+      payload: { errors: [{ message: 'Unhandled GraphQL query in mock' }] },
+    };
+  }
+
+  const nodes = publishedArticles.slice(0, first).map(graphqlArticleNode);
+  const hasNextPage = first < publishedArticles.length;
+
+  return {
+    status: 200,
+    payload: {
+      data: {
+        nodeArticles: {
+          nodes,
+          pageInfo: {
+            hasNextPage,
+            endCursor: hasNextPage ? String(first) : null,
+          },
+        },
+      },
+    },
+  };
 }
 
 // Two errors on purpose: one on a field the form owns, one on a field it does
@@ -250,6 +344,12 @@ const server = createServer(async (req, res) => {
 
   if (req.method === 'GET' && url.pathname === '/jsonapi/articles') {
     return send(res, 200, handleArticles(url));
+  }
+
+  if (req.method === 'POST' && url.pathname === '/graphql') {
+    const raw = await readBody(req);
+    const { status, payload } = handleGraphQL(raw);
+    return send(res, status, payload, 'application/json');
   }
 
   return send(res, 404, { errors: [{ title: 'Not Found', status: '404' }] });
