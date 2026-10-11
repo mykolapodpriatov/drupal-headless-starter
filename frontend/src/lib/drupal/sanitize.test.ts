@@ -94,6 +94,32 @@ describe('sanitizeServerHtml', () => {
       const out = sanitizeServerHtml('<a href=" javascript:alert(1)">x</a>');
       expect(out.toLowerCase()).not.toContain('javascript:');
     });
+
+    it('strips a javascript scheme written with a character reference', () => {
+      const out = sanitizeServerHtml('<a href="javascript&#58;alert(1)">x</a>');
+      expect(out.toLowerCase()).not.toContain('javascript');
+      expect(out.toLowerCase()).not.toContain('&#58;');
+      expect(out).toContain('>x</a>');
+    });
+
+    it('strips a scheme whose letters are character references', () => {
+      const out = sanitizeServerHtml(
+        '<a href="java&#115;cript:alert(1)">x</a>',
+      );
+      expect(out.toLowerCase()).not.toContain('cript');
+      expect(out).toContain('>x</a>');
+    });
+  });
+
+  describe('event names written with a character reference', () => {
+    it('strips an onclick whose first letter is a character reference', () => {
+      const out = sanitizeServerHtml(
+        '<img src="/a.png" &#111;nclick=alert(1)>',
+      );
+      expect(out.toLowerCase()).not.toContain('nclick');
+      expect(out.toLowerCase()).not.toContain('alert');
+      expect(out).toContain('src="/a.png"');
+    });
   });
 
   describe('benign markup', () => {
@@ -107,6 +133,12 @@ describe('sanitizeServerHtml', () => {
     it('leaves a plain paragraph untouched', () => {
       const input = '<p>Just <em>text</em> here.</p>';
       expect(sanitizeServerHtml(input)).toBe(input);
+    });
+
+    it('does not throw when an attribute contains a lone surrogate', () => {
+      const input = '<a href="&#xD800;ok" title="t">x</a>';
+      expect(() => sanitizeServerHtml(input)).not.toThrow();
+      expect(sanitizeServerHtml(input)).toContain('href=');
     });
   });
 });
