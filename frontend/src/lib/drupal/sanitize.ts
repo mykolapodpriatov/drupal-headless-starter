@@ -56,7 +56,7 @@ function attributeValue(assignment: string | undefined): string {
 function stripDangerousAttributes(html: string): string {
   return html.replace(/<[^>]*>/g, (tag) =>
     tag.replace(
-      /\s([^\s=/>]+)(\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+))?/g,
+      /(?:\s|(?<=["']))([^\s=/>]+)(\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+))?/g,
       (attr, name: string, assignment: string | undefined) => {
         const decodedName = decodeAttributeReference(name)
           .replace(/[\u0000-\u0020]+/g, '')
