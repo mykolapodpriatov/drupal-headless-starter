@@ -28,6 +28,15 @@ describe('sanitizeServerHtml', () => {
       expect(out).toContain('<p>hi</p>');
     });
 
+    it('strips a script tag that a nested tag reassembles', () => {
+      const out = sanitizeServerHtml(
+        '<scr<script>ipt>alert(1)</scr<script>ipt><p>ok</p>',
+      );
+      expect(out.toLowerCase()).not.toContain('<script');
+      expect(out.toLowerCase()).not.toContain('</script');
+      expect(out).toContain('<p>ok</p>');
+    });
+
     it('strips the full set of dangerous tags', () => {
       for (const tag of [
         'script',
@@ -79,6 +88,11 @@ describe('sanitizeServerHtml', () => {
     it('strips javascript: in href (unquoted)', () => {
       const out = sanitizeServerHtml('<a href=javascript:alert(1)>x</a>');
       expect(out).not.toContain('javascript:');
+    });
+
+    it('strips javascript: when whitespace follows the quote', () => {
+      const out = sanitizeServerHtml('<a href=" javascript:alert(1)">x</a>');
+      expect(out.toLowerCase()).not.toContain('javascript:');
     });
   });
 

@@ -14,11 +14,17 @@ const SCRIPT_LIKE_TAG =
   /<\/?(?:script|iframe|object|embed|link|meta|style)\b[^>]*>/gi;
 const EVENT_HANDLER_ATTR = /\son[a-z]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi;
 const JS_URL =
-  /\s(href|src)\s*=\s*(?:"javascript:[^"]*"|'javascript:[^']*'|javascript:[^\s>]+)/gi;
+  /\s(href|src)\s*=\s*(?:"\s*javascript:[^"]*"|'\s*javascript:[^']*'|javascript:[^\s>]+)/gi;
 
 export function sanitizeServerHtml(input: string): string {
-  return input
-    .replace(SCRIPT_LIKE_TAG, '')
-    .replace(EVENT_HANDLER_ATTR, '')
-    .replace(JS_URL, '');
+  // One pass turns `<scr<script>ipt>` into `<script>`: the inner tag is
+  // removed and the outer pieces join. Keep stripping while the string
+  // shrinks. Each pass deletes a match, so the loop ends.
+  let current = input;
+  let previous = '';
+  while (previous !== current) {
+    previous = current;
+    current = current.replace(SCRIPT_LIKE_TAG, '');
+  }
+  return current.replace(EVENT_HANDLER_ATTR, '').replace(JS_URL, '');
 }
