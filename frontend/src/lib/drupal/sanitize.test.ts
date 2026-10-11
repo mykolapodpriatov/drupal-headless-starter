@@ -72,6 +72,13 @@ describe('sanitizeServerHtml', () => {
       expect(out).not.toContain('onerror');
       expect(out).toContain('src="/a.png"');
     });
+
+    it('strips a handler glued to the previous quoted value', () => {
+      const out = sanitizeServerHtml('<img src="/a.png"onerror=alert(1)>');
+      expect(out).not.toContain('onerror');
+      expect(out).not.toContain('alert');
+      expect(out).toContain('src="/a.png"');
+    });
   });
 
   describe('javascript: URL stripping', () => {
